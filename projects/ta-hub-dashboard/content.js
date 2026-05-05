@@ -138,22 +138,57 @@
     // When viewing a candidate's Feedback tab
     const feedbacks = [];
     
-    // Look for the feedback section - right panel or main content
-    const rightPane = queryOneByPartialClass(document, 'pipelineRightPane') || document.body;
+    // Look for the feedback section - try multiple parent containers
+    const rightPane = queryOneByPartialClass(document, 'pipelineRightPane') || 
+                      queryOneByPartialClass(document, 'rightPane') ||
+                      queryOneByPartialClass(document, 'detail') ||
+                      queryOneByPartialClass(document, 'candidateDetail') ||
+                      document.body;
     
-    // Find all feedback rows - each interviewer is in a card/row with avatar, name, status
-    // The structure: Interviewer | Feedback form | Status (icon + text)
+    // DEBUG: Log what we find to console
+    console.log('[TA Hub Dashboard] Searching for feedback in:', rightPane.className || 'body');
     
-    // Strategy 1: Look for rows containing "Submitted" or "Pending" text
-    const allRows = rightPane.querySelectorAll(
-      'tr, [class*="row"], [class*="item"], [class*="card"], li'
-    );
+    // Get ALL text content to check what keywords exist on page
+    const pageText = rightPane.textContent || '';
+    const hasSubmittedText = pageText.includes('Submitted');
+    const hasPendingText = pageText.includes('Pending');
+    const hasFeedbackText = pageText.toLowerCase().includes('feedback');
+    console.log('[TA Hub Dashboard] Found keywords - Submitted:', hasSubmittedText, 'Pending:', hasPendingText, 'Feedback:', hasFeedbackText);
+    
+    // Strategy: Search broadly for ANY element containing status text
+    // Use a wider selector to catch any structure
+    const allElements = rightPane.querySelectorAll('*');
+    const statusElements = [];
+    
+    allElements.forEach(el => {
+      // Only check leaf-ish elements (not too deep containers)
+      if (el.children.length > 20) return;
+      const text = el.textContent.trim();
+      // Find elements that contain "Submitted" or "Pending" but are not too large
+      if (text.length > 10 && text.length < 300 && 
+          (text.includes('Submitted') || text.includes('Pending since') || text.includes('Pending'))) {
+        // Avoid duplicates by checking if parent already in list
+        const isChild = statusElements.some(parent => parent.contains(el) && parent !== el);
+        const isParent = statusElements.some(child => el.contains(child) && el !== child);
+        if (!isChild && !isParent) {
+          statusElements.push(el);
+        } else if (isParent) {
+          // Replace parent with this more specific element
+          const idx = statusElements.findIndex(child => el.contains(child) && el !== child);
+          if (idx >= 0) statusElements[idx] = el;
+        }
+      }
+    });
+    
+    console.log('[TA Hub Dashboard] Found status elements:', statusElements.length);
+    statusElements.forEach((el, i) => {
+      console.log(`[TA Hub Dashboard] Element ${i}:`, el.textContent.trim().substring(0, 100));
+    });
 
-    allRows.forEach(row => {
+    // Process each feedback row
+    statusElements.forEach(row => {
       const text = row.textContent.trim();
-      if (text.length < 10 || text.length > 500) return;
       
-      // Must contain a status keyword
       const hasSubmitted = text.includes('Submitted');
       const hasPending = text.includes('Pending');
       
