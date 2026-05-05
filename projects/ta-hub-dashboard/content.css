@@ -1,0 +1,259 @@
+/* TA Hub Dashboard - Floating Panel Styles */
+
+#tahub-dashboard {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  width: 320px;
+  max-height: 80vh;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+  z-index: 99999;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 13px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+#tahub-dashboard.tahub-minimized .tahub-dash-body {
+  display: none;
+}
+
+#tahub-dashboard.tahub-minimized {
+  width: 160px;
+}
+
+.tahub-dash-header {
+  background: linear-gradient(135deg, #0969da, #6366f1);
+  color: white;
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: move;
+}
+
+.tahub-dash-title {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.tahub-dash-close {
+  background: rgba(255,255,255,0.2);
+  border: none;
+  color: white;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tahub-dash-close:hover {
+  background: rgba(255,255,255,0.3);
+}
+
+.tahub-dash-body {
+  padding: 12px;
+  overflow-y: auto;
+  max-height: calc(80vh - 48px);
+}
+
+.tahub-dash-section {
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.tahub-dash-section:last-child {
+  border-bottom: none;
+}
+
+.tahub-dash-label {
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 8px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Stage counts */
+.tahub-dash-stages {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+}
+
+.tahub-stage-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 8px;
+  background: #f8fafc;
+  border-radius: 4px;
+}
+
+.tahub-stage-name {
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.tahub-stage-count {
+  font-weight: 600;
+  color: #0969da;
+}
+
+/* Feedback */
+.tahub-feedback-summary {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.tahub-fb-item {
+  flex: 1;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.tahub-fb-done {
+  background: #ecfdf5;
+  color: #065f46;
+}
+
+.tahub-fb-pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.tahub-feedback-list {
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.tahub-fb-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  margin-bottom: 2px;
+  font-size: 12px;
+}
+
+.tahub-fb-row.submitted {
+  background: #f0fdf4;
+}
+
+.tahub-fb-row.pending {
+  background: #fffbeb;
+}
+
+.tahub-fb-name {
+  flex: 1;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tahub-fb-status {
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.tahub-fb-date {
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+/* Action list */
+.tahub-action-list {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.tahub-action-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  margin-bottom: 2px;
+  background: #f8fafc;
+  font-size: 12px;
+}
+
+.tahub-action-name {
+  flex: 1;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tahub-action-stage {
+  font-size: 11px;
+  color: #6b7280;
+  background: #e5e7eb;
+  padding: 1px 6px;
+  border-radius: 3px;
+}
+
+.tahub-action-fb {
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+/* Recommendation */
+.tahub-recommendation {
+  background: #eff6ff;
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.tahub-recommendation p {
+  margin: 4px 0;
+  font-size: 12px;
+  color: #1e40af;
+}
+
+/* Footer */
+.tahub-dash-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 8px;
+}
+
+.tahub-refresh-btn {
+  background: #0969da;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.tahub-refresh-btn:hover {
+  background: #0553b1;
+}
+
+.tahub-dash-time {
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+.tahub-dash-empty {
+  color: #9ca3af;
+  font-style: italic;
+  text-align: center;
+  padding: 12px;
+}

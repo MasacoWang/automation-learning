@@ -1,0 +1,7 @@
+To create the icon:
+1. Go to https://favicon.io/emoji-favicons/
+2. Search "chart" or "bar chart"
+3. Download the 128x128 PNG
+4. Save as icon.png in this folder
+
+Or just use any 128x128 PNG image as icon.png

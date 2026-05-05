@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { width: 300px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 16px; margin: 0; }
+    h2 { font-size: 16px; color: #0969da; margin: 0 0 12px 0; }
+    p { font-size: 13px; color: #6b7280; line-height: 1.5; margin: 0 0 12px 0; }
+    .status { padding: 8px 12px; border-radius: 8px; background: #ecfdf5; color: #065f46; font-size: 12px; margin-bottom: 12px; }
+    .status.inactive { background: #fef3c7; color: #92400e; }
+    .instructions { font-size: 12px; color: #9ca3af; border-top: 1px solid #e5e7eb; padding-top: 12px; }
+    .instructions li { margin-bottom: 4px; }
+  </style>
+</head>
+<body>
+  <h2>📊 TA Hub Dashboard</h2>
+  <div class="status" id="status">
+    ✅ Active — Dashboard is showing on TA Hub
+  </div>
+  <p>This extension adds a floating dashboard on TA Hub pages that shows:</p>
+  <ul style="font-size: 13px; padding-left: 20px; color: #374151; margin-bottom: 12px;">
+    <li>Pipeline stage counts</li>
+    <li>Feedback status per interviewer</li>
+    <li>Candidates needing action</li>
+    <li>Dispose/continue recommendation</li>
+  </ul>
+  <div class="instructions">
+    <strong>How to use:</strong>
+    <ol style="padding-left: 16px; margin-top: 4px;">
+      <li>Go to <a href="https://careerhub.microsoft.com" target="_blank">TA Hub</a></li>
+      <li>Open any requisition</li>
+      <li>Dashboard appears on the right side</li>
+      <li>Click into candidates to see feedback details</li>
+    </ol>
+  </div>
+
+  <script>
+    // Check if we're on TA Hub
+    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+      const url = tabs[0]?.url || '';
+      const statusEl = document.getElementById('status');
+      if (!url.includes('careerhub.microsoft.com')) {
+        statusEl.className = 'status inactive';
+        statusEl.textContent = '⚠️ Navigate to TA Hub to use the dashboard';
+      }
+    });
+  </script>
+</body>
+</html>
