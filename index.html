@@ -3,35 +3,1231 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Automation Learning Guide</title>
+    <title>Learn to Build Automation Tools</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; line-height: 1.6; color: #333; }
-        h1 { color: #0969da; }
-        a { color: #0969da; text-decoration: none; }
-        a:hover { text-decoration: underline; }
-        .card { border: 1px solid #d0d7de; border-radius: 8px; padding: 20px; margin: 16px 0; }
-        .badge { background: #ddf4ff; color: #0969da; padding: 2px 8px; border-radius: 12px; font-size: 0.85em; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; line-height: 1.8; color: #1f2937; background: #f8fafc; }
+        
+        .header { background: linear-gradient(135deg, #0969da 0%, #6366f1 100%); color: white; padding: 50px 20px; text-align: center; }
+        .header h1 { font-size: 2rem; margin-bottom: 10px; }
+        .header p { opacity: 0.9; font-size: 1.1rem; max-width: 500px; margin: 0 auto; }
+        
+        .nav { background: white; border-bottom: 1px solid #e5e7eb; padding: 12px 20px; position: sticky; top: 0; z-index: 100; overflow-x: auto; white-space: nowrap; }
+        .nav-inner { max-width: 800px; margin: 0 auto; display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+        .nav button { background: none; border: 2px solid #e5e7eb; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.9rem; color: #4b5563; transition: all 0.2s; }
+        .nav button:hover { border-color: #0969da; color: #0969da; }
+        .nav button.active { background: #0969da; color: white; border-color: #0969da; }
+        
+        .container { max-width: 800px; margin: 0 auto; padding: 30px 20px; }
+        .section { display: none; animation: fadeIn 0.3s ease; }
+        .section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        h2 { font-size: 1.5rem; margin-bottom: 16px; color: #111827; }
+        
+        .card { background: white; border-radius: 12px; padding: 24px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+        .card h3 { color: #0969da; margin-bottom: 12px; font-size: 1.1rem; }
+        
+        .explain { background: #fffbeb; border-left: 4px solid #f59e0b; padding: 16px; border-radius: 0 8px 8px 0; margin: 16px 0; font-size: 0.95rem; }
+        .explain strong { color: #92400e; }
+        
+        .tip { background: #ecfdf5; border-left: 4px solid #10b981; padding: 16px; border-radius: 0 8px 8px 0; margin: 16px 0; }
+        
+        .step { display: flex; gap: 16px; align-items: flex-start; margin: 16px 0; padding: 16px; background: #f8fafc; border-radius: 8px; }
+        .step-num { background: #0969da; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0; }
+        .step-content { flex: 1; }
+        .step-content p { margin: 0; }
+
+        .analogy { background: #f0f9ff; border: 2px solid #bae6fd; border-radius: 12px; padding: 20px; margin: 16px 0; }
+        .analogy h4 { color: #0369a1; margin-bottom: 8px; }
+        
+        pre { background: #1e293b; color: #e2e8f0; padding: 16px; border-radius: 8px; overflow-x: auto; margin: 12px 0; font-size: 0.9rem; font-family: Consolas, monospace; }
+        .inline-code { background: #f1f5f9; padding: 2px 8px; border-radius: 4px; font-family: Consolas, monospace; font-size: 0.9em; }
+        
+        .progress-bar { background: #e5e7eb; border-radius: 99px; height: 10px; margin: 12px 0; overflow: hidden; }
+        .progress-fill { background: linear-gradient(90deg, #10b981, #06b6d4); height: 100%; border-radius: 99px; transition: width 0.5s; }
+        
+        .checklist { list-style: none; padding: 0; }
+        .checklist li { padding: 12px; border-bottom: 1px solid #f3f4f6; display: flex; align-items: center; gap: 12px; }
+        .checklist input { width: 20px; height: 20px; accent-color: #10b981; cursor: pointer; }
+        .checklist label { cursor: pointer; font-size: 0.95rem; }
+        .checklist .done { text-decoration: line-through; color: #9ca3af; }
+        
+        .vocab { display: grid; grid-template-columns: auto 1fr; gap: 8px 16px; margin: 12px 0; }
+        .vocab dt { font-weight: 600; color: #0969da; }
+        .vocab dd { color: #4b5563; }
+        
+        .try-box { background: #eff6ff; border: 2px dashed #93c5fd; border-radius: 12px; padding: 20px; margin: 16px 0; }
+        .try-box h4 { color: #1d4ed8; margin-bottom: 8px; }
+        
+        .footer { text-align: center; padding: 30px 20px; color: #9ca3af; font-size: 0.85rem; border-top: 1px solid #e5e7eb; margin-top: 40px; }
+        
+        @media (max-width: 640px) {
+            .header h1 { font-size: 1.5rem; }
+            .nav-inner { justify-content: flex-start; flex-wrap: nowrap; }
+            .step { flex-direction: column; gap: 8px; }
+        }
     </style>
 </head>
 <body>
-    <h1>🚀 Automation Learning Journey</h1>
-    <p>A beginner-friendly guide to using VS Code and building recruitment automation tools — no tech degree needed.</p>
+
+<div class="header">
+    <h1>🚀 Learn to Build Automation Tools</h1>
+    <p>No coding experience needed. Start from zero, build useful tools that save you hours every week.</p>
+</div>
+
+<div class="nav">
+    <div class="nav-inner">
+        <button class="active" onclick="showSection('start')">🏠 Start Here</button>
+        <button onclick="showSection('vocab')">📖 Key Words</button>
+        <button onclick="showSection('setup')">⚙️ Setup</button>
+        <button onclick="showSection('first')">✨ First Project</button>
+        <button onclick="showSection('ideas')">💡 Ideas</button>
+        <button onclick="showSection('progress')">📊 My Progress</button>
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- START HERE -->
+    <div id="start" class="section active">
+        <h2>👋 Welcome! Start Here</h2>
+        
+        <div class="card">
+            <h3>What is this guide?</h3>
+            <p>This teaches you how to make the computer do repetitive work for you. Instead of copy-pasting 50 emails one by one, you'll write a simple script that does it in 2 seconds.</p>
+        </div>
+
+        <div class="analogy">
+            <h4>🍳 Think of it like cooking</h4>
+            <p><strong>Coding is like following a recipe.</strong></p>
+            <p>You don't need to be a chef. You just need to follow the steps. The computer is your kitchen — it does exactly what you tell it.</p>
+            <p style="margin-top: 8px;">• A <strong>recipe</strong> = your code (step-by-step instructions)<br>
+            • <strong>Ingredients</strong> = your data (names, emails, job titles)<br>
+            • <strong>The dish</strong> = the output (50 personalized emails)</p>
+        </div>
+
+        <div class="card">
+            <h3>What tools do you need?</h3>
+            <p>Just 2 free things you may already have:</p>
+            <div class="step">
+                <div class="step-num">1</div>
+                <div class="step-content">
+                    <p><strong>VS Code</strong> — A text editor where you write instructions for the computer. Think of it as "Word, but for code."</p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-num">2</div>
+                <div class="step-content">
+                    <p><strong>Python</strong> — A programming language (the simplest one). It reads your instructions and does the work.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>What can you build?</h3>
+            <p>Real examples that save recruiters hours:</p>
+            <ul style="padding-left: 20px; margin-top: 8px;">
+                <li>📧 Generate 50 personalized emails in 2 seconds</li>
+                <li>📋 Check if a resume matches a job description</li>
+                <li>📊 Organize candidate data from messy spreadsheets</li>
+                <li>✍️ Create LinkedIn messages with different versions to test</li>
+            </ul>
+        </div>
+
+        <div class="tip">
+            <strong>💡 You already proved you can do this.</strong> You built an entire website without a tech background. Automation scripts are actually easier than that.
+        </div>
+    </div>
+
+    <!-- VOCABULARY -->
+    <div id="vocab" class="section">
+        <h2>📖 Key Words (Plain English)</h2>
+        <p style="margin-bottom: 16px; color: #6b7280;">Don't memorize these. Just come back here when you see a word you don't know.</p>
+
+        <div class="card">
+            <h3>The Basics</h3>
+            <dl class="vocab">
+                <dt>Code</dt>
+                <dd>Instructions you write for the computer. Like a recipe — step 1, step 2, step 3.</dd>
+                
+                <dt>Script</dt>
+                <dd>A file containing code. You press "Run" and it does the work.</dd>
+                
+                <dt>VS Code</dt>
+                <dd>The app where you write your scripts. Like Microsoft Word, but for code.</dd>
+                
+                <dt>Terminal</dt>
+                <dd>A text-only chat with your computer. You type commands, it replies. Lives inside VS Code.</dd>
+                
+                <dt>Python</dt>
+                <dd>A programming language. The simplest one to learn. Your scripts will be in Python.</dd>
+                
+                <dt>Variable</dt>
+                <dd>A container that holds information. Like a name tag — <span class="inline-code">name = "Sarah"</span> stores "Sarah" so you can use it later.</dd>
+                
+                <dt>String</dt>
+                <dd>Text in code. Always wrapped in quotes: <span class="inline-code">"Hello World"</span></dd>
+                
+                <dt>Function</dt>
+                <dd>A reusable set of instructions. Like a saved email template — define it once, use it many times.</dd>
+                
+                <dt>Loop</dt>
+                <dd>Repeat something. "For each candidate in my list, send an email." That's a loop.</dd>
+                
+                <dt>CSV file</dt>
+                <dd>A spreadsheet saved as plain text. Excel can save files as .csv. Python loves reading these.</dd>
+            </dl>
+        </div>
+
+        <div class="card">
+            <h3>Tools & Actions</h3>
+            <dl class="vocab">
+                <dt>Git</dt>
+                <dd>A "save game" system for your code. It remembers every version so you can undo mistakes.</dd>
+                
+                <dt>GitHub</dt>
+                <dd>A website that stores your code online. Like Google Drive but for code projects.</dd>
+                
+                <dt>Copilot</dt>
+                <dd>AI that writes code for you. You describe what you want in English, it writes the code. You already have it!</dd>
+                
+                <dt>Package / Library</dt>
+                <dd>Code someone else already wrote that you can use for free. Like pre-made ingredients.</dd>
+                
+                <dt>pip install</dt>
+                <dd>The command to download a package. Like "Add to cart" for free code tools.</dd>
+                
+                <dt>Run / Execute</dt>
+                <dd>Tell the computer to follow your instructions now.</dd>
+                
+                <dt>Bug</dt>
+                <dd>A mistake in your code. Everyone gets them. Google the error message to fix it.</dd>
+                
+                <dt>Debug</dt>
+                <dd>Finding and fixing the bug. Detective work!</dd>
+            </dl>
+        </div>
+
+        <div class="analogy">
+            <h4>🏢 Office Analogy</h4>
+            <p><strong>VS Code</strong> = your desk<br>
+            <strong>Terminal</strong> = talking to your assistant<br>
+            <strong>Python</strong> = your assistant who does the work<br>
+            <strong>Script</strong> = the task list you give your assistant<br>
+            <strong>Git</strong> = filing cabinet (saves everything)<br>
+            <strong>Copilot</strong> = a colleague who helps you write the task list</p>
+        </div>
+    </div>
+
+    <!-- SETUP -->
+    <div id="setup" class="section">
+        <h2>⚙️ One-Time Setup</h2>
+        <p style="margin-bottom: 16px; color: #6b7280;">Do these steps once. Then you're ready to build forever.</p>
+
+        <div class="card">
+            <h3>Step 1: Install VS Code</h3>
+            <p>You probably already have this! If not:</p>
+            <div class="step">
+                <div class="step-num">→</div>
+                <div class="step-content">
+                    <p>Go to <a href="https://code.visualstudio.com" target="_blank">code.visualstudio.com</a> → Download → Install (click Next until done)</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Step 2: Install Python</h3>
+            <div class="step">
+                <div class="step-num">→</div>
+                <div class="step-content">
+                    <p>Go to <a href="https://www.python.org/downloads/" target="_blank">python.org/downloads</a> → Download → Install</p>
+                </div>
+            </div>
+            <div class="explain">
+                <strong>⚠️ Important:</strong> During install, check the box that says "Add Python to PATH". This lets your computer find Python when you need it.
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Step 3: Check it works</h3>
+            <p>Open VS Code, then open the Terminal:</p>
+            <div class="step">
+                <div class="step-num">→</div>
+                <div class="step-content">
+                    <p>Press <span class="inline-code">Ctrl + `</span> (the key above Tab)</p>
+                </div>
+            </div>
+            <p>Type this and press Enter:</p>
+            <pre>python --version</pre>
+            <p>If you see something like <span class="inline-code">Python 3.12.0</span> — you're ready! 🎉</p>
+            
+            <div class="explain">
+                <strong>❓ Got an error?</strong> Close VS Code completely, reopen it, and try again. If still broken, restart your computer (Python needs a restart to be found).
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Step 4: Make VS Code comfortable</h3>
+            <p>Press <span class="inline-code">Ctrl + ,</span> (comma) to open Settings, then change:</p>
+            <ul style="padding-left: 20px; margin-top: 8px;">
+                <li><strong>Font Size:</strong> Set to 16 (easier to read)</li>
+                <li><strong>Auto Save:</strong> Set to "afterDelay" (never lose work)</li>
+                <li><strong>Word Wrap:</strong> Set to "on" (no sideways scrolling)</li>
+            </ul>
+        </div>
+
+        <div class="tip">
+            <strong>✅ That's it!</strong> You only do this once. Now you're ready to build things.
+        </div>
+    </div>
+
+    <!-- FIRST PROJECT -->
+    <div id="first" class="section">
+        <h2>✨ Your First Project: Email Generator</h2>
+        <p style="margin-bottom: 16px; color: #6b7280;">In 10 minutes, you'll build a tool that writes 50 personalized emails instantly.</p>
+
+        <div class="analogy">
+            <h4>📬 What we're building</h4>
+            <p><strong>The problem:</strong> You have 50 candidates. You need to send each one a personalized email. Doing it manually = 2 hours of copy-paste.</p>
+            <p style="margin-top: 8px;"><strong>The solution:</strong> Write a template once + give it a list of names → it generates all 50 emails in 2 seconds.</p>
+        </div>
+
+        <div class="card">
+            <h3>Step 1: Create a new file</h3>
+            <div class="step">
+                <div class="step-num">1</div>
+                <div class="step-content"><p>Open VS Code</p></div>
+            </div>
+            <div class="step">
+                <div class="step-num">2</div>
+                <div class="step-content"><p>Press <span class="inline-code">Ctrl + N</span> (new file)</p></div>
+            </div>
+            <div class="step">
+                <div class="step-num">3</div>
+                <div class="step-content"><p>Press <span class="inline-code">Ctrl + S</span> to save it. Name it: <span class="inline-code">email-generator.py</span></p></div>
+            </div>
+            <div class="explain">
+                <strong>Why .py?</strong> The <span class="inline-code">.py</span> at the end tells the computer "this is a Python file." Just like .docx means Word document.
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Step 2: Write the code</h3>
+            <p>Copy and paste this into your file:</p>
+            <pre># This is my email generator!
+# Lines starting with # are notes (computer ignores them)
+
+# --- MY CANDIDATE LIST ---
+candidates = [
+    {"name": "Sarah", "role": "Software Engineer"},
+    {"name": "James", "role": "Product Manager"},
+    {"name": "Lisa", "role": "Data Scientist"},
+]
+
+# --- MY EMAIL TEMPLATE ---
+template = """Hi {name},
+
+I saw your profile and loved your experience as a {role}.
+
+We have a role that's a great fit for your background.
+Would you be open to a quick 15-min chat this week?
+
+Best,
+Clarice"""
+
+# --- GENERATE EMAILS ---
+for person in candidates:
+    print("─" * 40)
+    print(f"TO: {person['name']}")
+    print("─" * 40)
+    email = template.format(
+        name=person["name"],
+        role=person["role"]
+    )
+    print(email)
+    print()</pre>
+        </div>
+
+        <div class="card">
+            <h3>Step 3: Run it!</h3>
+            <div class="step">
+                <div class="step-num">→</div>
+                <div class="step-content">
+                    <p>Open Terminal: <span class="inline-code">Ctrl + `</span></p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-num">→</div>
+                <div class="step-content">
+                    <p>Type this and press Enter:</p>
+                </div>
+            </div>
+            <pre>python email-generator.py</pre>
+            <p style="margin-top: 12px; font-size: 1.1rem;">🎉 <strong>You just automated email generation!</strong></p>
+        </div>
+
+        <div class="card">
+            <h3>Step 4: Make it yours</h3>
+            <p>Now customize it! Try changing:</p>
+            <ul style="padding-left: 20px; margin-top: 8px;">
+                <li>Add more candidates to the list</li>
+                <li>Change the email template text</li>
+                <li>Add more fields like <span class="inline-code">"company": "Google"</span></li>
+            </ul>
+            
+            <div class="tip" style="margin-top: 16px;">
+                <strong>💡 How Copilot helps:</strong> In VS Code, type a comment like <span class="inline-code"># add the candidate's company to the email</span> and Copilot will suggest the code change for you!
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>What just happened? (Plain English)</h3>
+            <dl class="vocab">
+                <dt>candidates = [...]</dt>
+                <dd>You made a list of people. Each person has a name and role.</dd>
+                
+                <dt>template = """..."""</dt>
+                <dd>You wrote an email template. {name} and {role} are blanks that get filled in.</dd>
+                
+                <dt>for person in candidates:</dt>
+                <dd>"For each person in my list, do the following..."</dd>
+                
+                <dt>template.format(...)</dt>
+                <dd>Fill in the blanks with this person's actual info.</dd>
+                
+                <dt>print(email)</dt>
+                <dd>Show the result on screen.</dd>
+            </dl>
+        </div>
+
+        <div class="try-box">
+            <h4>🎯 Challenge: Read from a spreadsheet</h4>
+            <p>Once you're comfortable, try this next level: save your candidates in an Excel/CSV file and have Python read from it. Ask Copilot: <em>"read candidates from a CSV file and generate emails"</em> — it will write the code for you!</p>
+        </div>
+    </div>
+
+    <!-- IDEAS -->
+    <div id="ideas" class="section">
+        <h2>💡 What Else Can You Build?</h2>
+        <p style="margin-bottom: 16px; color: #6b7280;">Start with green. Move to yellow when green feels easy.</p>
+
+        <div class="card">
+            <h3>🟢 Easy — Start with these</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr style="border-bottom: 1px solid #e5e7eb;">
+                    <td style="padding: 12px;"><strong>Email Generator</strong><br><span style="color:#6b7280; font-size:0.85rem;">You just built this! ✅</span></td>
+                    <td style="padding: 12px; color: #10b981; font-weight: 600;">Saves 2 hrs/week</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #e5e7eb;">
+                    <td style="padding: 12px;"><strong>LinkedIn Message Variants</strong><br><span style="color:#6b7280; font-size:0.85rem;">Generate 5 versions of same message for A/B testing</span></td>
+                    <td style="padding: 12px; color: #10b981; font-weight: 600;">Saves 1 hr/week</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #e5e7eb;">
+                    <td style="padding: 12px;"><strong>JD Cleaner</strong><br><span style="color:#6b7280; font-size:0.85rem;">Fix formatting, remove jargon, standardize job descriptions</span></td>
+                    <td style="padding: 12px; color: #10b981; font-weight: 600;">Saves 30 min/JD</td>
+                </tr>
+                <tr>
+                    <td style="padding: 12px;"><strong>Interview Reminder Maker</strong><br><span style="color:#6b7280; font-size:0.85rem;">Generate calendar invite text with all details</span></td>
+                    <td style="padding: 12px; color: #10b981; font-weight: 600;">Saves 1 hr/week</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="card">
+            <h3>🟡 Medium — After a few weeks</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr style="border-bottom: 1px solid #e5e7eb;">
+                    <td style="padding: 12px;"><strong>Resume Keyword Checker</strong><br><span style="color:#6b7280; font-size:0.85rem;">Does this CV match the JD? Get a score.</span></td>
+                </tr>
+                <tr style="border-bottom: 1px solid #e5e7eb;">
+                    <td style="padding: 12px;"><strong>Candidate Spreadsheet Organizer</strong><br><span style="color:#6b7280; font-size:0.85rem;">Clean messy data, remove duplicates, sort by stage</span></td>
+                </tr>
+                <tr>
+                    <td style="padding: 12px;"><strong>Follow-up Tracker</strong><br><span style="color:#6b7280; font-size:0.85rem;">Flag candidates who haven't replied in 5 days</span></td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="card">
+            <h3>🔴 Advanced — Future goals</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr style="border-bottom: 1px solid #e5e7eb;">
+                    <td style="padding: 12px;"><strong>Pipeline Dashboard</strong><br><span style="color:#6b7280; font-size:0.85rem;">Web page showing all your candidates and their status</span></td>
+                </tr>
+                <tr>
+                    <td style="padding: 12px;"><strong>AI Matching Tool</strong><br><span style="color:#6b7280; font-size:0.85rem;">Upload a JD → AI suggests best candidates from your list</span></td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="tip">
+            <strong>💡 How to build any of these:</strong> Open Copilot (this chat!) and describe what you want. For example: <em>"Help me build a Python script that reads my candidates.csv and flags anyone I haven't contacted in 5 days."</em>
+        </div>
+    </div>
+
+    <!-- PROGRESS -->
+    <div id="progress" class="section">
+        <h2>📊 My Learning Progress</h2>
+        <p style="margin-bottom: 16px; color: #6b7280;">Check things off as you go. Progress saves automatically in your browser.</p>
+
+        <div class="card">
+            <h3>🌱 Week 1-2: Get Set Up</h3>
+            <div class="progress-bar"><div class="progress-fill" id="progress-week1" style="width: 0%"></div></div>
+            <ul class="checklist" id="week1-list">
+                <li><input type="checkbox" id="w1-1" onchange="saveProgress()"><label for="w1-1">Install VS Code (or confirm you have it)</label></li>
+                <li><input type="checkbox" id="w1-2" onchange="saveProgress()"><label for="w1-2">Install Python</label></li>
+                <li><input type="checkbox" id="w1-3" onchange="saveProgress()"><label for="w1-3">Open Terminal in VS Code (Ctrl + `)</label></li>
+                <li><input type="checkbox" id="w1-4" onchange="saveProgress()"><label for="w1-4">Run "python --version" successfully</label></li>
+                <li><input type="checkbox" id="w1-5" onchange="saveProgress()"><label for="w1-5">Change VS Code font size to 16</label></li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h3>🌿 Week 3-4: First Script</h3>
+            <div class="progress-bar"><div class="progress-fill" id="progress-week2" style="width: 0%"></div></div>
+            <ul class="checklist" id="week2-list">
+                <li><input type="checkbox" id="w2-1" onchange="saveProgress()"><label for="w2-1">Create email-generator.py file</label></li>
+                <li><input type="checkbox" id="w2-2" onchange="saveProgress()"><label for="w2-2">Run the email generator successfully</label></li>
+                <li><input type="checkbox" id="w2-3" onchange="saveProgress()"><label for="w2-3">Add your own candidates to the list</label></li>
+                <li><input type="checkbox" id="w2-4" onchange="saveProgress()"><label for="w2-4">Customize the email template</label></li>
+                <li><input type="checkbox" id="w2-5" onchange="saveProgress()"><label for="w2-5">Add a new field (e.g. company name)</label></li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h3>🌳 Week 5-6: Level Up</h3>
+            <div class="progress-bar"><div class="progress-fill" id="progress-week3" style="width: 0%"></div></div>
+            <ul class="checklist" id="week3-list">
+                <li><input type="checkbox" id="w3-1" onchange="saveProgress()"><label for="w3-1">Read candidate data from a CSV file</label></li>
+                <li><input type="checkbox" id="w3-2" onchange="saveProgress()"><label for="w3-2">Use Copilot to write a new script</label></li>
+                <li><input type="checkbox" id="w3-3" onchange="saveProgress()"><label for="w3-3">Build a second automation tool</label></li>
+                <li><input type="checkbox" id="w3-4" onchange="saveProgress()"><label for="w3-4">Fix a bug by reading the error message</label></li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h3>🌲 Week 7+: Build Real Tools</h3>
+            <div class="progress-bar"><div class="progress-fill" id="progress-week4" style="width: 0%"></div></div>
+            <ul class="checklist" id="week4-list">
+                <li><input type="checkbox" id="w4-1" onchange="saveProgress()"><label for="w4-1">Build something that saves you 1+ hour/week</label></li>
+                <li><input type="checkbox" id="w4-2" onchange="saveProgress()"><label for="w4-2">Share a tool with a colleague</label></li>
+                <li><input type="checkbox" id="w4-3" onchange="saveProgress()"><label for="w4-3">Push a project to GitHub</label></li>
+                <li><input type="checkbox" id="w4-4" onchange="saveProgress()"><label for="w4-4">Build something without following a tutorial</label></li>
+            </ul>
+        </div>
+    </div>
+
+</div>
+
+<div class="footer">
+    <p>🔒 Your progress saves in your browser — nothing leaves your device.</p>
+    <p style="margin-top: 8px;">Built by Clarice Wang · <a href="https://github.com/MasacoWang/automation-learning" target="_blank">GitHub</a></p>
+</div>
+
+<script>
+function showSection(id) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    event.target.classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function saveProgress() {
+    const checkboxes = document.querySelectorAll('.checklist input[type="checkbox"]');
+    const state = {};
+    checkboxes.forEach(cb => {
+        state[cb.id] = cb.checked;
+        const label = cb.nextElementSibling;
+        if (cb.checked) label.classList.add('done');
+        else label.classList.remove('done');
+    });
+    localStorage.setItem('automation-learning-progress', JSON.stringify(state));
+    updateProgressBars();
+}
+
+function loadProgress() {
+    const saved = localStorage.getItem('automation-learning-progress');
+    if (!saved) return;
+    const state = JSON.parse(saved);
+    Object.entries(state).forEach(([id, checked]) => {
+        const cb = document.getElementById(id);
+        if (cb) {
+            cb.checked = checked;
+            if (checked && cb.nextElementSibling) cb.nextElementSibling.classList.add('done');
+        }
+    });
+    updateProgressBars();
+}
+
+function updateProgressBars() {
+    ['week1', 'week2', 'week3', 'week4'].forEach(week => {
+        const list = document.getElementById(`${week}-list`);
+        if (!list) return;
+        const total = list.querySelectorAll('input[type="checkbox"]').length;
+        const checked = list.querySelectorAll('input[type="checkbox"]:checked').length;
+        document.getElementById(`progress-${week}`).style.width = (total ? Math.round((checked/total)*100) : 0) + '%';
+    });
+}
+
+loadProgress();
+</script>
+
+</body>
+</html>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; line-height: 1.6; color: #1f2937; background: #f8fafc; }
+        
+        /* Header */
+        .header { background: linear-gradient(135deg, #0969da 0%, #6366f1 100%); color: white; padding: 40px 20px; text-align: center; }
+        .header h1 { font-size: 2rem; margin-bottom: 8px; }
+        .header p { opacity: 0.9; font-size: 1.1rem; max-width: 600px; margin: 0 auto; }
+        
+        /* Navigation */
+        .nav { background: white; border-bottom: 1px solid #e5e7eb; padding: 12px 20px; position: sticky; top: 0; z-index: 100; overflow-x: auto; white-space: nowrap; }
+        .nav-inner { max-width: 900px; margin: 0 auto; display: flex; gap: 4px; }
+        .nav button { background: none; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: #4b5563; transition: all 0.2s; white-space: nowrap; }
+        .nav button:hover { background: #f3f4f6; }
+        .nav button.active { background: #0969da; color: white; }
+        
+        /* Main content */
+        .container { max-width: 900px; margin: 0 auto; padding: 30px 20px; }
+        .section { display: none; animation: fadeIn 0.3s ease; }
+        .section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Cards */
+        .card { background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 24px; margin-bottom: 16px; transition: box-shadow 0.2s; }
+        .card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .card h3 { color: #0969da; margin-bottom: 8px; }
+        .card p { color: #6b7280; }
+        
+        /* Tables */
+        table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.9rem; }
+        th { background: #f1f5f9; text-align: left; padding: 10px 12px; font-weight: 600; }
+        td { padding: 10px 12px; border-bottom: 1px solid #e5e7eb; }
+        tr:hover td { background: #f8fafc; }
+        
+        /* Code blocks */
+        pre { background: #1e293b; color: #e2e8f0; padding: 16px; border-radius: 8px; overflow-x: auto; margin: 12px 0; font-size: 0.85rem; }
+        code { font-family: 'Fira Code', 'Consolas', monospace; }
+        .inline-code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 0.85em; color: #e11d48; }
+        
+        /* Progress tracker */
+        .progress-bar { background: #e5e7eb; border-radius: 99px; height: 8px; margin: 16px 0; overflow: hidden; }
+        .progress-fill { background: linear-gradient(90deg, #0969da, #6366f1); height: 100%; border-radius: 99px; transition: width 0.5s ease; }
+        .checklist { list-style: none; padding: 0; }
+        .checklist li { padding: 10px 12px; border-bottom: 1px solid #f3f4f6; display: flex; align-items: center; gap: 10px; cursor: pointer; border-radius: 6px; }
+        .checklist li:hover { background: #f8fafc; }
+        .checklist input[type="checkbox"] { width: 18px; height: 18px; accent-color: #0969da; cursor: pointer; }
+        .checklist label { cursor: pointer; flex: 1; }
+        .checklist .done { text-decoration: line-through; color: #9ca3af; }
+        
+        /* Tips */
+        .tip { background: #ecfdf5; border-left: 4px solid #10b981; padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 12px 0; }
+        .warning { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 12px 0; }
+        
+        /* Shortcuts quiz */
+        .quiz-card { background: white; border: 2px solid #e5e7eb; border-radius: 12px; padding: 20px; margin: 12px 0; text-align: center; }
+        .quiz-card.correct { border-color: #10b981; background: #ecfdf5; }
+        .quiz-card.wrong { border-color: #ef4444; background: #fef2f2; }
+        .quiz-options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+        .quiz-options button { padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px; background: white; cursor: pointer; font-size: 0.9rem; transition: all 0.2s; }
+        .quiz-options button:hover { border-color: #0969da; background: #eff6ff; }
+        .quiz-options button.selected-correct { border-color: #10b981; background: #ecfdf5; }
+        .quiz-options button.selected-wrong { border-color: #ef4444; background: #fef2f2; }
+        
+        /* Diagram */
+        .diagram { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; margin: 20px 0; }
+        .diagram-step { background: white; border: 2px solid #0969da; border-radius: 12px; padding: 16px 20px; text-align: center; min-width: 120px; }
+        .diagram-step .icon { font-size: 1.5rem; }
+        .diagram-step .label { font-size: 0.85rem; font-weight: 600; color: #0969da; }
+        .diagram-arrow { color: #0969da; font-size: 1.2rem; }
+        
+        /* Badge */
+        .badge { display: inline-block; background: #dbeafe; color: #1d4ed8; padding: 2px 10px; border-radius: 99px; font-size: 0.75rem; font-weight: 600; }
+        .badge-green { background: #dcfce7; color: #166534; }
+        .badge-amber { background: #fef3c7; color: #92400e; }
+        .badge-red { background: #fee2e2; color: #991b1b; }
+        
+        /* Try it section */
+        .try-it { background: #eff6ff; border: 2px dashed #0969da; border-radius: 12px; padding: 20px; margin: 16px 0; }
+        .try-it h4 { color: #0969da; margin-bottom: 8px; }
+        
+        /* Footer */
+        .footer { text-align: center; padding: 30px 20px; color: #9ca3af; font-size: 0.85rem; border-top: 1px solid #e5e7eb; margin-top: 40px; }
+
+        /* Mobile */
+        @media (max-width: 640px) {
+            .header h1 { font-size: 1.5rem; }
+            .header p { font-size: 0.95rem; }
+            .quiz-options { grid-template-columns: 1fr; }
+            .diagram { flex-direction: column; }
+            .diagram-arrow { transform: rotate(90deg); }
+            table { font-size: 0.8rem; }
+            th, td { padding: 8px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+    <h1>🚀 VS Code & Automation Guide</h1>
+    <p>A beginner-friendly interactive guide to building recruitment automation tools — no tech degree needed.</p>
+</div>
+
+<!-- Navigation -->
+<div class="nav">
+    <div class="nav-inner">
+        <button class="active" onclick="showSection('overview')">🏠 Overview</button>
+        <button onclick="showSection('vscode')">💻 VS Code</button>
+        <button onclick="showSection('terminal')">⌨️ Terminal</button>
+        <button onclick="showSection('extensions')">🧩 Extensions</button>
+        <button onclick="showSection('first-script')">🐍 First Script</button>
+        <button onclick="showSection('ideas')">💡 Ideas</button>
+        <button onclick="showSection('copilot')">🤖 Copilot Tips</button>
+        <button onclick="showSection('shortcuts')">⚡ Practice</button>
+        <button onclick="showSection('roadmap')">🗺️ Roadmap</button>
+    </div>
+</div>
+
+<!-- Content -->
+<div class="container">
+
+    <!-- Section: Overview -->
+    <div id="overview" class="section active">
+        <h2>Welcome to Your Learning Journey 👋</h2>
+        <p style="margin: 12px 0; color: #6b7280;">You already built a full website. Now let's level up with automation tools that save you hours every week.</p>
+        
+        <div class="diagram">
+            <div class="diagram-step"><div class="icon">📝</div><div class="label">Learn VS Code</div></div>
+            <div class="diagram-arrow">→</div>
+            <div class="diagram-step"><div class="icon">⌨️</div><div class="label">Terminal Basics</div></div>
+            <div class="diagram-arrow">→</div>
+            <div class="diagram-step"><div class="icon">🐍</div><div class="label">Python Scripts</div></div>
+            <div class="diagram-arrow">→</div>
+            <div class="diagram-step"><div class="icon">🤖</div><div class="label">Build Tools</div></div>
+        </div>
+
+        <div class="card">
+            <h3>Why VS Code?</h3>
+            <table>
+                <tr><th>Feature</th><th>Why it matters</th></tr>
+                <tr><td>Free & Lightweight</td><td>No cost, runs on any computer</td></tr>
+                <tr><td>Built-in Terminal</td><td>Run commands without switching apps</td></tr>
+                <tr><td>GitHub Copilot</td><td>AI writes code for you</td></tr>
+                <tr><td>Extensions</td><td>Add superpowers with one click</td></tr>
+                <tr><td>Huge Community</td><td>Every question has been answered online</td></tr>
+            </table>
+        </div>
+
+        <div class="tip">
+            <strong>💡 You already use VS Code!</strong> You built your prompt library website using it. This guide helps you go deeper.
+        </div>
+    </div>
+
+    <!-- Section: VS Code Interface -->
+    <div id="vscode" class="section">
+        <h2>💻 Understanding VS Code</h2>
+        
+        <div class="card">
+            <h3>The Interface</h3>
+            <pre><code>┌─────────────────────────────────────────────────┐
+│  Menu Bar (File, Edit, View, Terminal, Help)     │
+├────────┬────────────────────────────────────────┤
+│        │                                        │
+│  Side  │       Editor Area                      │
+│  Bar   │   (where you write code)               │
+│        │                                        │
+│  📁    │   You can open multiple tabs            │
+│  🔍    │   and split the view                    │
+│  🔀    ├────────────────────────────────────────┤
+│  🐛    │                                        │
+│  🧩    │       Terminal (command line)           │
+│        │   Toggle with Ctrl + `                  │
+└────────┴────────────────────────────────────────┘</code></pre>
+        </div>
+
+        <div class="card">
+            <h3>Key Areas</h3>
+            <table>
+                <tr><th>Icon</th><th>Name</th><th>What it does</th><th>Shortcut</th></tr>
+                <tr><td>📁</td><td>Explorer</td><td>Browse your files</td><td><span class="inline-code">Ctrl+Shift+E</span></td></tr>
+                <tr><td>🔍</td><td>Search</td><td>Find text across all files</td><td><span class="inline-code">Ctrl+Shift+F</span></td></tr>
+                <tr><td>🔀</td><td>Source Control</td><td>Git (save versions)</td><td><span class="inline-code">Ctrl+Shift+G</span></td></tr>
+                <tr><td>🧩</td><td>Extensions</td><td>Install add-ons</td><td><span class="inline-code">Ctrl+Shift+X</span></td></tr>
+            </table>
+        </div>
+
+        <div class="card">
+            <h3>Settings to Change First</h3>
+            <p>Open Settings: <span class="inline-code">Ctrl + ,</span></p>
+            <table>
+                <tr><th>Setting</th><th>Change to</th><th>Why</th></tr>
+                <tr><td>Font Size</td><td>14-16</td><td>Easier to read</td></tr>
+                <tr><td>Auto Save</td><td>afterDelay</td><td>Never lose work</td></tr>
+                <tr><td>Word Wrap</td><td>on</td><td>See full lines</td></tr>
+            </table>
+        </div>
+
+        <div class="try-it">
+            <h4>🎯 Try it now:</h4>
+            <p>Press <span class="inline-code">Ctrl + Shift + P</span> in VS Code — this opens the Command Palette. Type "theme" to change your color theme!</p>
+        </div>
+    </div>
+
+    <!-- Section: Terminal -->
+    <div id="terminal" class="section">
+        <h2>⌨️ Terminal Basics</h2>
+        <p style="margin: 12px 0; color: #6b7280;">The terminal is the command line inside VS Code. Open it with <span class="inline-code">Ctrl + `</span></p>
+
+        <div class="card">
+            <h3>Navigation Commands</h3>
+            <pre><code># Go into a folder
+cd folder-name
+
+# Go back one level
+cd ..
+
+# List files in current folder
+ls
+
+# Show where you are
+pwd</code></pre>
+        </div>
+
+        <div class="card">
+            <h3>Git Commands (Version Control)</h3>
+            <pre><code># See what changed
+git status
+
+# Stage all changes
+git add .
+
+# Save a snapshot with a message
+git commit -m "describe your change"
+
+# Upload to GitHub
+git push</code></pre>
+        </div>
+
+        <div class="card">
+            <h3>Node.js (for web projects like your site)</h3>
+            <pre><code># Install project dependencies
+npm install
+
+# Start local dev server
+npm run dev
+
+# Build for production
+npm run build</code></pre>
+        </div>
+
+        <div class="card">
+            <h3>Python (for automation scripts)</h3>
+            <pre><code># Run a script
+python script.py
+
+# Install a package
+pip install pandas</code></pre>
+        </div>
+
+        <div class="tip">
+            <strong>💡 Pro tips:</strong><br>
+            • Press <strong>↑</strong> arrow to repeat last command<br>
+            • Press <strong>Tab</strong> to auto-complete names<br>
+            • Type <strong>cls</strong> to clear the screen<br>
+            • Press <strong>Ctrl+C</strong> to stop a stuck command
+        </div>
+    </div>
+
+    <!-- Section: Extensions -->
+    <div id="extensions" class="section">
+        <h2>🧩 Essential Extensions</h2>
+        <p style="margin: 12px 0; color: #6b7280;">Open Extensions: <span class="inline-code">Ctrl + Shift + X</span>, search and click "Install"</p>
+
+        <div class="card">
+            <h3>Must-Have <span class="badge-green badge">Install these</span></h3>
+            <table>
+                <tr><th>Extension</th><th>What it does</th></tr>
+                <tr><td><strong>GitHub Copilot</strong></td><td>AI writes code for you ✅ (you have this!)</td></tr>
+                <tr><td><strong>Prettier</strong></td><td>Auto-formats code to look clean</td></tr>
+                <tr><td><strong>Auto Rename Tag</strong></td><td>Rename HTML tags automatically</td></tr>
+                <tr><td><strong>Error Lens</strong></td><td>Shows errors right on the line</td></tr>
+                <tr><td><strong>Path Intellisense</strong></td><td>Auto-completes file paths</td></tr>
+            </table>
+        </div>
+
+        <div class="card">
+            <h3>Nice to Have <span class="badge">Optional</span></h3>
+            <table>
+                <tr><th>Extension</th><th>What it does</th></tr>
+                <tr><td><strong>Thunder Client</strong></td><td>Test APIs without leaving VS Code</td></tr>
+                <tr><td><strong>GitLens</strong></td><td>See who changed what and when</td></tr>
+                <tr><td><strong>Live Server</strong></td><td>Preview HTML files instantly</td></tr>
+                <tr><td><strong>Code Spell Checker</strong></td><td>Catches typos in code</td></tr>
+                <tr><td><strong>Python</strong></td><td>Python language support</td></tr>
+            </table>
+        </div>
+
+        <div class="try-it">
+            <h4>🎯 Try it now:</h4>
+            <p>Open VS Code → <span class="inline-code">Ctrl+Shift+X</span> → Search "Prettier" → Click Install. Done! Your code will auto-format on save.</p>
+        </div>
+    </div>
+
+    <!-- Section: First Script -->
+    <div id="first-script" class="section">
+        <h2>🐍 Your First Automation Script</h2>
+        <p style="margin: 12px 0; color: #6b7280;">Let's build an email generator that personalizes outreach from a candidate list.</p>
+
+        <div class="card">
+            <h3>Step 1: Install Python</h3>
+            <ol style="padding-left: 20px; margin-top: 8px;">
+                <li>Go to <a href="https://www.python.org/downloads/" target="_blank">python.org/downloads</a></li>
+                <li>Download latest version</li>
+                <li><strong>Important:</strong> Check ✅ "Add Python to PATH" during install</li>
+                <li>Verify: Open terminal → type <span class="inline-code">python --version</span></li>
+            </ol>
+        </div>
+
+        <div class="card">
+            <h3>Step 2: Create email-generator.py</h3>
+            <pre><code># My first automation script!
+# Generates personalized outreach emails
+
+candidates = [
+    {"name": "Sarah", "role": "Software Engineer", "company": "Google"},
+    {"name": "James", "role": "Product Manager", "company": "Meta"},
+    {"name": "Lisa", "role": "Data Scientist", "company": "Amazon"},
+]
+
+template = """
+Hi {name},
+
+I came across your profile and was impressed by your
+experience as a {role} at {company}.
+
+We have an exciting opportunity that aligns with your
+background. Would you be open to a brief chat this week?
+
+Best regards,
+Clarice
+"""
+
+for candidate in candidates:
+    email = template.format(**candidate)
+    print(f"--- Email for {candidate['name']} ---")
+    print(email)</code></pre>
+        </div>
+
+        <div class="card">
+            <h3>Step 3: Run it!</h3>
+            <pre><code>python email-generator.py</code></pre>
+            <p style="margin-top: 8px;">🎉 You just automated email generation!</p>
+        </div>
+
+        <div class="card">
+            <h3>Step 4: Level up — Read from CSV</h3>
+            <p>Create <span class="inline-code">candidates.csv</span>:</p>
+            <pre><code>Name,Role,Company
+Sarah,Software Engineer,Google
+James,Product Manager,Meta
+Lisa,Data Scientist,Amazon</code></pre>
+            <p style="margin-top: 12px;">Updated script:</p>
+            <pre><code>import csv
+
+template = """Hi {name},
+I was impressed by your experience as a {role} at {company}.
+Would you be open to a brief chat?
+"""
+
+with open('candidates.csv', 'r') as file:
+    reader = csv.DictReader(file)
+    for row in reader:
+        email = template.format(
+            name=row['Name'],
+            role=row['Role'],
+            company=row['Company']
+        )
+        print(email)</code></pre>
+        </div>
+
+        <div class="tip">
+            <strong>💡 Key concept:</strong> A <strong>variable</strong> like <span class="inline-code">{name}</span> is a placeholder that gets replaced with real data. That's the core of all automation — templates + data = personalized output.
+        </div>
+    </div>
+
+    <!-- Section: Ideas -->
+    <div id="ideas" class="section">
+        <h2>💡 Automation Ideas for Recruiters</h2>
+
+        <div class="card">
+            <h3>🟢 Beginner <span class="badge-green badge">Start here</span></h3>
+            <table>
+                <tr><th>Idea</th><th>What it does</th><th>Saves</th></tr>
+                <tr><td>Email generator</td><td>Personalize outreach from a list</td><td>~2 hrs/week</td></tr>
+                <tr><td>Interview scheduler</td><td>Generate calendar invite text</td><td>~1 hr/week</td></tr>
+                <tr><td>JD formatter</td><td>Clean up messy job descriptions</td><td>~30 min/JD</td></tr>
+                <tr><td>LinkedIn message variants</td><td>Create A/B test versions</td><td>~1 hr/week</td></tr>
+            </table>
+        </div>
+
+        <div class="card">
+            <h3>🟡 Intermediate <span class="badge-amber badge">After Month 2</span></h3>
+            <table>
+                <tr><th>Idea</th><th>What it does</th></tr>
+                <tr><td>Resume keyword scanner</td><td>Check if CV matches JD requirements</td></tr>
+                <tr><td>Pipeline tracker</td><td>Web app to track candidates</td></tr>
+                <tr><td>Auto-reply sorter</td><td>Categorize email responses</td></tr>
+                <tr><td>Salary data collector</td><td>Gather market rate information</td></tr>
+            </table>
+        </div>
+
+        <div class="card">
+            <h3>🔴 Advanced <span class="badge-red badge">Month 4+</span></h3>
+            <table>
+                <tr><th>Idea</th><th>What it does</th></tr>
+                <tr><td>ATS integration</td><td>Auto-push candidates to your system</td></tr>
+                <tr><td>Interview feedback tool</td><td>Collect & summarize interviewer feedback</td></tr>
+                <tr><td>Sourcing assistant</td><td>AI-powered candidate matching</td></tr>
+            </table>
+        </div>
+    </div>
+
+    <!-- Section: Copilot -->
+    <div id="copilot" class="section">
+        <h2>🤖 Working with GitHub Copilot</h2>
+        <p style="margin: 12px 0; color: #6b7280;">You already have Copilot — here's how to get the most from it.</p>
+
+        <div class="card">
+            <h3>The Comment Trick</h3>
+            <p>Write a comment describing what you want → Copilot suggests the code → press <span class="inline-code">Tab</span> to accept</p>
+            <pre><code># Read a CSV file and count candidates from each company
+# (Copilot will write the code below this comment!)
+
+import csv
+from collections import Counter
+...</code></pre>
+        </div>
+
+        <div class="card">
+            <h3>Tips for Better Results</h3>
+            <table>
+                <tr><th>Do this</th><th>Not this</th></tr>
+                <tr><td>Write clear, specific comments</td><td>Vague one-word comments</td></tr>
+                <tr><td>Give input/output examples</td><td>Assume Copilot reads your mind</td></tr>
+                <tr><td>Break into small steps</td><td>Ask for everything at once</td></tr>
+                <tr><td>Accept + modify suggestions</td><td>Reject if not 100% perfect</td></tr>
+            </table>
+        </div>
+
+        <div class="card">
+            <h3>Step-by-Step Workflow</h3>
+            <pre><code># Task: Read candidates.csv, filter 5+ years experience,
+# generate personalized email for each
+
+# Step 1: Read the CSV file
+# (Type this comment, then wait for Copilot)
+
+# Step 2: Filter candidates with 5+ years
+# (Copilot sees Step 1's code and builds on it)
+
+# Step 3: Generate email using template
+# (Copilot completes the pipeline)</code></pre>
+        </div>
+
+        <div class="tip">
+            <strong>💡 Remember:</strong> If Copilot's suggestion is wrong, press <span class="inline-code">Alt + ]</span> to see alternatives, or add more context in your comment.
+        </div>
+    </div>
+
+    <!-- Section: Practice (Quiz) -->
+    <div id="shortcuts" class="section">
+        <h2>⚡ Practice: Keyboard Shortcuts Quiz</h2>
+        <p style="margin: 12px 0; color: #6b7280;">Test your knowledge! Click the correct answer.</p>
+
+        <div id="quiz-container"></div>
+        
+        <div style="text-align: center; margin-top: 20px;">
+            <p id="quiz-score" style="font-size: 1.2rem; font-weight: 600;"></p>
+            <button onclick="resetQuiz()" style="margin-top: 10px; padding: 10px 20px; background: #0969da; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">🔄 Try Again</button>
+        </div>
+    </div>
+
+    <!-- Section: Roadmap -->
+    <div id="roadmap" class="section">
+        <h2>🗺️ Learning Roadmap</h2>
+        <p style="margin: 12px 0; color: #6b7280;">Track your progress! Check items off as you complete them. Your progress is saved automatically.</p>
+
+        <div class="card">
+            <h3>Month 1: Foundation</h3>
+            <div class="progress-bar"><div class="progress-fill" id="progress-month1" style="width: 0%"></div></div>
+            <ul class="checklist" id="month1-list">
+                <li><input type="checkbox" id="m1-1" onchange="saveProgress()"><label for="m1-1">Get comfortable with VS Code interface</label></li>
+                <li><input type="checkbox" id="m1-2" onchange="saveProgress()"><label for="m1-2">Learn terminal basics (cd, ls, git commands)</label></li>
+                <li><input type="checkbox" id="m1-3" onchange="saveProgress()"><label for="m1-3">Install Python and verify it works</label></li>
+                <li><input type="checkbox" id="m1-4" onchange="saveProgress()"><label for="m1-4">Write first Python script (email generator)</label></li>
+                <li><input type="checkbox" id="m1-5" onchange="saveProgress()"><label for="m1-5">Read from a CSV file successfully</label></li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h3>Month 2: Python for Automation</h3>
+            <div class="progress-bar"><div class="progress-fill" id="progress-month2" style="width: 0%"></div></div>
+            <ul class="checklist" id="month2-list">
+                <li><input type="checkbox" id="m2-1" onchange="saveProgress()"><label for="m2-1">Read/write CSV and Excel files</label></li>
+                <li><input type="checkbox" id="m2-2" onchange="saveProgress()"><label for="m2-2">Learn string manipulation (replace, split, join)</label></li>
+                <li><input type="checkbox" id="m2-3" onchange="saveProgress()"><label for="m2-3">Learn if/else logic and loops</label></li>
+                <li><input type="checkbox" id="m2-4" onchange="saveProgress()"><label for="m2-4">Build a resume keyword scanner</label></li>
+                <li><input type="checkbox" id="m2-5" onchange="saveProgress()"><label for="m2-5">Learn to handle errors gracefully</label></li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h3>Month 3: Web & APIs</h3>
+            <div class="progress-bar"><div class="progress-fill" id="progress-month3" style="width: 0%"></div></div>
+            <ul class="checklist" id="month3-list">
+                <li><input type="checkbox" id="m3-1" onchange="saveProgress()"><label for="m3-1">Understand how APIs work (GET, POST)</label></li>
+                <li><input type="checkbox" id="m3-2" onchange="saveProgress()"><label for="m3-2">Use Python requests library</label></li>
+                <li><input type="checkbox" id="m3-3" onchange="saveProgress()"><label for="m3-3">Connect to a real API</label></li>
+                <li><input type="checkbox" id="m3-4" onchange="saveProgress()"><label for="m3-4">Build a data fetching script</label></li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h3>Month 4: Build Real Tools</h3>
+            <div class="progress-bar"><div class="progress-fill" id="progress-month4" style="width: 0%"></div></div>
+            <ul class="checklist" id="month4-list">
+                <li><input type="checkbox" id="m4-1" onchange="saveProgress()"><label for="m4-1">Combine skills into a useful tool</label></li>
+                <li><input type="checkbox" id="m4-2" onchange="saveProgress()"><label for="m4-2">Deploy it (web or script)</label></li>
+                <li><input type="checkbox" id="m4-3" onchange="saveProgress()"><label for="m4-3">Share with team members</label></li>
+                <li><input type="checkbox" id="m4-4" onchange="saveProgress()"><label for="m4-4">Build one small thing every week</label></li>
+            </ul>
+        </div>
+    </div>
+
+</div>
+
+<!-- Footer -->
+<div class="footer">
+    <p>🔒 Your progress is saved in your browser — no data leaves your device.</p>
+    <p style="margin-top: 8px;">Built by Clarice Wang with GitHub Copilot · <a href="https://github.com/MasacoWang/automation-learning" target="_blank">View on GitHub</a></p>
+</div>
+
+<script>
+// --- Navigation ---
+function showSection(id) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    event.target.classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// --- Quiz ---
+const quizData = [
+    { q: "Open a file quickly?", options: ["Ctrl+P", "Ctrl+O", "Ctrl+F", "Ctrl+N"], answer: 0 },
+    { q: "Toggle the terminal?", options: ["Ctrl+T", "Ctrl+`", "Ctrl+Shift+T", "Alt+T"], answer: 1 },
+    { q: "Search across all files?", options: ["Ctrl+F", "Ctrl+H", "Ctrl+Shift+F", "Ctrl+G"], answer: 2 },
+    { q: "Open Command Palette?", options: ["Ctrl+P", "Ctrl+Shift+P", "F1", "Both B & C"], answer: 3 },
+    { q: "Save current file?", options: ["Ctrl+S", "Ctrl+Shift+S", "Alt+S", "F5"], answer: 0 },
+    { q: "Undo last action?", options: ["Ctrl+U", "Ctrl+Z", "Ctrl+Y", "Alt+Z"], answer: 1 },
+    { q: "Open Extensions panel?", options: ["Ctrl+E", "Ctrl+Shift+E", "Ctrl+Shift+X", "Ctrl+X"], answer: 2 },
+    { q: "Split editor view?", options: ["Ctrl+/", "Ctrl+\\", "Ctrl+Shift+\\", "Alt+\\"], answer: 1 },
+];
+
+let quizAnswered = 0;
+let quizCorrect = 0;
+
+function renderQuiz() {
+    const container = document.getElementById('quiz-container');
+    container.innerHTML = quizData.map((item, i) => `
+        <div class="quiz-card" id="quiz-${i}">
+            <p style="font-weight:600; margin-bottom: 4px;">Q${i+1}: ${item.q}</p>
+            <div class="quiz-options">
+                ${item.options.map((opt, j) => `<button onclick="checkAnswer(${i}, ${j})">${opt}</button>`).join('')}
+            </div>
+        </div>
+    `).join('');
+    document.getElementById('quiz-score').textContent = '';
+}
+
+function checkAnswer(qIndex, selected) {
+    const card = document.getElementById(`quiz-${qIndex}`);
+    if (card.classList.contains('correct') || card.classList.contains('wrong')) return;
     
-    <div class="card">
-        <h2>📘 VS Code & Automation Guidebook</h2>
-        <p>Complete guide covering VS Code setup, terminal basics, Python scripts, and a month-by-month learning roadmap.</p>
-        <p><a href="guides/vscode-automation-guidebook.md">📖 Read the Guidebook →</a></p>
-    </div>
+    const buttons = card.querySelectorAll('.quiz-options button');
+    const correct = quizData[qIndex].answer;
+    
+    if (selected === correct) {
+        card.classList.add('correct');
+        buttons[selected].classList.add('selected-correct');
+        quizCorrect++;
+    } else {
+        card.classList.add('wrong');
+        buttons[selected].classList.add('selected-wrong');
+        buttons[correct].classList.add('selected-correct');
+    }
+    
+    quizAnswered++;
+    if (quizAnswered === quizData.length) {
+        document.getElementById('quiz-score').textContent = `🎯 Score: ${quizCorrect}/${quizData.length} correct!`;
+    }
+}
 
-    <div class="card">
-        <h2>📂 What's Inside</h2>
-        <ul>
-            <li><span class="badge">guides/</span> Step-by-step learning guides</li>
-            <li><span class="badge">projects/</span> Automation tools I build</li>
-            <li><span class="badge">notes/</span> Quick reference & cheat sheets</li>
-        </ul>
-    </div>
+function resetQuiz() {
+    quizAnswered = 0;
+    quizCorrect = 0;
+    renderQuiz();
+}
 
-    <p><em>Built by Clarice Wang with GitHub Copilot</em></p>
+// --- Progress Tracking ---
+function saveProgress() {
+    const checkboxes = document.querySelectorAll('.checklist input[type="checkbox"]');
+    const state = {};
+    checkboxes.forEach(cb => {
+        state[cb.id] = cb.checked;
+        const label = cb.nextElementSibling;
+        if (cb.checked) label.classList.add('done');
+        else label.classList.remove('done');
+    });
+    localStorage.setItem('automation-learning-progress', JSON.stringify(state));
+    updateProgressBars();
+}
+
+function loadProgress() {
+    const saved = localStorage.getItem('automation-learning-progress');
+    if (!saved) return;
+    const state = JSON.parse(saved);
+    Object.entries(state).forEach(([id, checked]) => {
+        const cb = document.getElementById(id);
+        if (cb) {
+            cb.checked = checked;
+            const label = cb.nextElementSibling;
+            if (checked) label.classList.add('done');
+        }
+    });
+    updateProgressBars();
+}
+
+function updateProgressBars() {
+    ['month1', 'month2', 'month3', 'month4'].forEach(month => {
+        const list = document.getElementById(`${month}-list`);
+        if (!list) return;
+        const total = list.querySelectorAll('input[type="checkbox"]').length;
+        const checked = list.querySelectorAll('input[type="checkbox"]:checked').length;
+        const pct = total ? Math.round((checked / total) * 100) : 0;
+        document.getElementById(`progress-${month}`).style.width = pct + '%';
+    });
+}
+
+// Init
+renderQuiz();
+loadProgress();
+</script>
+
 </body>
 </html>
