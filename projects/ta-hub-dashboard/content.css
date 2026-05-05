@@ -132,6 +132,38 @@
   color: #92400e;
 }
 
+.tahub-fb-nohire {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.tahub-decision-banner {
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.tahub-decision-banner.all_hire {
+  background: #dcfce7;
+  color: #166534;
+  border: 2px solid #86efac;
+}
+
+.tahub-decision-banner.all_no_hire {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 2px solid #fca5a5;
+}
+
+.tahub-decision-banner.mixed {
+  background: #fef3c7;
+  color: #92400e;
+  border: 2px solid #fcd34d;
+}
+
 .tahub-feedback-list {
   max-height: 150px;
   overflow-y: auto;
@@ -147,12 +179,24 @@
   font-size: 12px;
 }
 
-.tahub-fb-row.submitted {
+.tahub-fb-row.submitted.hire {
   background: #f0fdf4;
+  border-left: 3px solid #22c55e;
+}
+
+.tahub-fb-row.submitted.no_hire {
+  background: #fef2f2;
+  border-left: 3px solid #ef4444;
 }
 
 .tahub-fb-row.pending {
   background: #fffbeb;
+  border-left: 3px solid #f59e0b;
+}
+
+.tahub-fb-decision {
+  font-size: 16px;
+  flex-shrink: 0;
 }
 
 .tahub-fb-name {

@@ -138,43 +138,116 @@
     // When viewing a candidate's Feedback tab
     const feedbacks = [];
     
-    // Look for the feedback section - could be in right panel
+    // Look for the feedback section - right panel or main content
     const rightPane = queryOneByPartialClass(document, 'pipelineRightPane') || document.body;
     
-    // Find feedback-related containers
-    const feedbackContainers = rightPane.querySelectorAll(
-      '[class*="feedback"], [class*="interview"], [class*="evaluation"]'
+    // Find all feedback rows - each interviewer is in a card/row with avatar, name, status
+    // The structure: Interviewer | Feedback form | Status (icon + text)
+    
+    // Strategy 1: Look for rows containing "Submitted" or "Pending" text
+    const allRows = rightPane.querySelectorAll(
+      'tr, [class*="row"], [class*="item"], [class*="card"], li'
     );
 
-    feedbackContainers.forEach(container => {
-      // Look for rows within feedback sections
-      const rows = container.querySelectorAll('tr, [class*="row"], [class*="item"]');
+    allRows.forEach(row => {
+      const text = row.textContent.trim();
+      if (text.length < 10 || text.length > 500) return;
       
-      rows.forEach(row => {
-        const text = row.textContent.trim();
-        if (text.length < 5) return;
-        
-        // Check if this row has a status indicator
-        const hasSubmitted = text.toLowerCase().includes('submitted') || text.toLowerCase().includes('completed');
-        const hasPending = text.toLowerCase().includes('pending') || text.toLowerCase().includes('not started');
-        const hasDeclined = text.toLowerCase().includes('declined');
-        
-        if (!hasSubmitted && !hasPending && !hasDeclined) return;
-
-        // Try to extract interviewer name (usually the first text element)
-        const nameEl = row.querySelector('a, [class*="name"], [class*="person"], span:first-child');
-        const interviewer = nameEl ? nameEl.textContent.trim().split('\n')[0] : text.split(/\s{2,}/)[0];
-        
-        if (interviewer && interviewer.length > 2 && interviewer.length < 50) {
-          // Extract date if present
-          const dateMatch = text.match(/(\d{1,2}\/\d{1,2}\/\d{2,4}|\w+ \d{1,2},? \d{4})/);
+      // Must contain a status keyword
+      const hasSubmitted = text.includes('Submitted');
+      const hasPending = text.includes('Pending');
+      
+      if (!hasSubmitted && !hasPending) return;
+      
+      // --- DETECT HIRE / NO HIRE ---
+      // Green thumbs up = Hire, Red thumbs down = No Hire
+      let decision = 'none'; // none = pending, hire = thumbs up, no_hire = thumbs down
+      
+      if (hasSubmitted) {
+        // Look for thumbs up/down icons by color or class
+        const icons = row.querySelectorAll('svg, [class*="icon"], [class*="thumb"], img, i');
+        icons.forEach(icon => {
+          const style = window.getComputedStyle(icon);
+          const color = style.color || style.fill || '';
+          const cls = icon.className || '';
+          const parentCls = icon.parentElement?.className || '';
+          const svgContent = icon.outerHTML.toLowerCase();
           
-          feedbacks.push({
-            interviewer: interviewer.substring(0, 30),
-            status: hasSubmitted ? 'submitted' : hasPending ? 'pending' : 'declined',
-            date: dateMatch ? dateMatch[1] : ''
-          });
+          // Green = hire (thumbs up)
+          if (color.includes('rgb(0, 128') || color.includes('rgb(16, 185') || 
+              color.includes('green') || color.includes('#10b981') ||
+              cls.includes('success') || cls.includes('positive') || cls.includes('green') ||
+              cls.includes('thumb-up') || cls.includes('thumbUp') ||
+              parentCls.includes('success') || parentCls.includes('positive') || parentCls.includes('green') ||
+              svgContent.includes('thumb') && (svgContent.includes('green') || svgContent.includes('success'))) {
+            decision = 'hire';
+          }
+          
+          // Red = no hire (thumbs down)
+          if (color.includes('rgb(239') || color.includes('rgb(220') || color.includes('rgb(255, 0') ||
+              color.includes('red') || color.includes('#ef4444') || color.includes('#dc2626') ||
+              cls.includes('danger') || cls.includes('negative') || cls.includes('red') ||
+              cls.includes('thumb-down') || cls.includes('thumbDown') ||
+              parentCls.includes('danger') || parentCls.includes('negative') || parentCls.includes('red') ||
+              svgContent.includes('thumb') && (svgContent.includes('red') || svgContent.includes('danger'))) {
+            decision = 'no_hire';
+          }
+        });
+        
+        // Fallback: check background color of icon container
+        const iconContainers = row.querySelectorAll('[class*="status"] *, [class*="icon"]');
+        iconContainers.forEach(el => {
+          const bg = window.getComputedStyle(el).backgroundColor;
+          if (bg && (bg.includes('rgb(16, 185') || bg.includes('rgb(5, 150') || bg.includes('rgb(34, 197'))) {
+            decision = 'hire';
+          }
+          if (bg && (bg.includes('rgb(239, 68') || bg.includes('rgb(220, 38') || bg.includes('rgb(248, 113'))) {
+            decision = 'no_hire';
+          }
+        });
+        
+        // Fallback 2: aria-label or title attributes on icons
+        const allEls = row.querySelectorAll('[aria-label], [title]');
+        allEls.forEach(el => {
+          const label = (el.getAttribute('aria-label') || el.getAttribute('title') || '').toLowerCase();
+          if (label.includes('hire') && !label.includes('no hire') && !label.includes('not hire')) {
+            decision = 'hire';
+          }
+          if (label.includes('no hire') || label.includes('not hire') || label.includes('reject')) {
+            decision = 'no_hire';
+          }
+        });
+      }
+
+      // Extract interviewer name
+      const nameEl = row.querySelector('a, [class*="name"], [class*="person"], [class*="interviewer"]');
+      let interviewer = '';
+      if (nameEl) {
+        interviewer = nameEl.textContent.trim().split('\n')[0];
+      } else {
+        // First meaningful text chunk is likely the name
+        const spans = row.querySelectorAll('span, div, p');
+        for (const span of spans) {
+          const t = span.textContent.trim();
+          if (t.length > 2 && t.length < 40 && !t.includes('Submitted') && 
+              !t.includes('Pending') && !t.includes('Interview feedback') &&
+              !t.includes('Send reminder') && !t.match(/\d{4}/)) {
+            interviewer = t;
+            break;
+          }
         }
+      }
+      
+      if (!interviewer || interviewer.length < 2 || interviewer.length > 50) return;
+
+      // Extract date
+      const dateMatch = text.match(/((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2},?\s*\d{4}|\d{1,2}\/\d{1,2}\/\d{2,4})/);
+      
+      feedbacks.push({
+        interviewer: interviewer.substring(0, 30),
+        status: hasSubmitted ? 'submitted' : 'pending',
+        decision: hasSubmitted ? decision : 'none',
+        date: dateMatch ? dateMatch[1] : ''
       });
     });
 
@@ -200,8 +273,22 @@
 
     const totalSubmitted = feedbacks.filter(f => f.status === 'submitted').length;
     const totalPending = feedbacks.filter(f => f.status === 'pending').length;
+    const totalHire = feedbacks.filter(f => f.decision === 'hire').length;
+    const totalNoHire = feedbacks.filter(f => f.decision === 'no_hire').length;
     const totalCandidates = candidates.length;
     const stageCount = Object.keys(stages).length;
+
+    // Decision logic
+    let overallDecision = '';
+    if (feedbacks.length > 0 && totalPending === 0) {
+      if (totalNoHire === 0 && totalHire > 0) {
+        overallDecision = 'all_hire';
+      } else if (totalNoHire > 0 && totalHire === 0) {
+        overallDecision = 'all_no_hire';
+      } else if (totalNoHire > 0 && totalHire > 0) {
+        overallDecision = 'mixed';
+      }
+    }
 
     dashboard.innerHTML = `
       <div class="tahub-dash-header">
@@ -231,16 +318,27 @@
 
         ${feedbacks.length > 0 ? `
         <div class="tahub-dash-section">
-          <div class="tahub-dash-label">Feedback Status (${feedbacks.length} interviewers)</div>
+          <div class="tahub-dash-label">Feedback & Decision (${feedbacks.length} interviewers)</div>
           <div class="tahub-feedback-summary">
-            <div class="tahub-fb-item tahub-fb-done">✅ Done: ${totalSubmitted}</div>
+            <div class="tahub-fb-item tahub-fb-done">👍 Hire: ${totalHire}</div>
+            <div class="tahub-fb-item tahub-fb-nohire">👎 No Hire: ${totalNoHire}</div>
             <div class="tahub-fb-item tahub-fb-pending">⏳ Pending: ${totalPending}</div>
           </div>
+          
+          ${overallDecision ? `
+          <div class="tahub-decision-banner ${overallDecision}">
+            ${overallDecision === 'all_hire' ? '✅ ALL INTERVIEWERS SAY HIRE → Advance candidate' : ''}
+            ${overallDecision === 'all_no_hire' ? '❌ ALL INTERVIEWERS SAY NO HIRE → Dispose candidate' : ''}
+            ${overallDecision === 'mixed' ? '⚠️ MIXED SIGNALS — Review feedback details before deciding' : ''}
+          </div>
+          ` : ''}
+          
           <div class="tahub-feedback-list">
             ${feedbacks.map(f => `
-              <div class="tahub-fb-row ${f.status}">
+              <div class="tahub-fb-row ${f.status} ${f.decision}">
+                <span class="tahub-fb-decision">${f.decision === 'hire' ? '👍' : f.decision === 'no_hire' ? '👎' : '⏳'}</span>
                 <span class="tahub-fb-name">${f.interviewer}</span>
-                <span class="tahub-fb-status">${f.status === 'submitted' ? '✅' : f.status === 'pending' ? '⏳' : '❌'}</span>
+                <span class="tahub-fb-status">${f.status === 'submitted' ? (f.decision === 'hire' ? 'Hire' : f.decision === 'no_hire' ? 'No Hire' : 'Submitted') : 'Pending'}</span>
                 <span class="tahub-fb-date">${f.date}</span>
               </div>
             `).join('')}
@@ -249,7 +347,7 @@
         ` : `
         <div class="tahub-dash-section">
           <div class="tahub-dash-label">Feedback Status</div>
-          <p class="tahub-dash-empty">Click a candidate → Feedback tab to see interviewer status</p>
+          <p class="tahub-dash-empty">Click a candidate → Feedback tab to see interviewer decisions</p>
         </div>
         `}
 
@@ -272,8 +370,10 @@
         <div class="tahub-dash-section">
           <div class="tahub-dash-label">💡 Recommendation</div>
           <div class="tahub-recommendation">
-            ${totalPending > 0 ? `<p>⏳ <strong>${totalPending} pending feedback</strong> — chase the interviewers</p>` : ''}
-            ${totalSubmitted > 0 && totalPending === 0 ? `<p>✅ <strong>All feedback in!</strong> — Make your decision: advance or dispose</p>` : ''}
+            ${overallDecision === 'all_hire' ? `<p>🎉 <strong>All positive!</strong> Advance this candidate to the next stage.</p>` : ''}
+            ${overallDecision === 'all_no_hire' ? `<p>🚫 <strong>All negative.</strong> Dispose this candidate with a rejection email.</p>` : ''}
+            ${overallDecision === 'mixed' ? `<p>⚠️ <strong>Mixed feedback (${totalHire} hire, ${totalNoHire} no hire).</strong> Discuss with hiring manager before deciding.</p>` : ''}
+            ${totalPending > 0 ? `<p>⏳ <strong>${totalPending} pending feedback</strong> — chase the interviewers or send a reminder</p>` : ''}
             ${feedbacks.length === 0 && totalCandidates > 0 ? `<p>📋 ${totalCandidates} candidates found. Click into each to check their feedback tab.</p>` : ''}
             ${feedbacks.length === 0 && totalCandidates === 0 ? `<p>👉 Open a requisition and click the Interview or Screen tab</p>` : ''}
           </div>
