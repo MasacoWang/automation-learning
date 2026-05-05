@@ -301,3 +301,57 @@
   text-align: center;
   padding: 12px;
 }
+
+/* Feedback groups by form type */
+.tahub-feedback-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tahub-form-group {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.tahub-form-group-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 10px;
+  background: #f8fafc;
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.tahub-form-group-summary {
+  display: flex;
+  gap: 4px;
+}
+
+.tahub-badge-hire {
+  background: #dcfce7;
+  color: #166534;
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-size: 11px;
+}
+
+.tahub-badge-nohire {
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-size: 11px;
+}
+
+.tahub-badge-pending {
+  background: #fef3c7;
+  color: #92400e;
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-size: 11px;
+}

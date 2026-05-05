@@ -231,6 +231,7 @@
           const t = span.textContent.trim();
           if (t.length > 2 && t.length < 40 && !t.includes('Submitted') && 
               !t.includes('Pending') && !t.includes('Interview feedback') &&
+              !t.includes('Phone screen') && !t.includes('feedback form') &&
               !t.includes('Send reminder') && !t.match(/\d{4}/)) {
             interviewer = t;
             break;
@@ -240,6 +241,18 @@
       
       if (!interviewer || interviewer.length < 2 || interviewer.length > 50) return;
 
+      // --- DETECT FEEDBACK FORM TYPE ---
+      // "Interview feedback form" = Interview stage
+      // "Phone screen feedback form" = Phone Screen stage
+      let formType = 'other';
+      if (text.toLowerCase().includes('phone screen')) {
+        formType = 'phone_screen';
+      } else if (text.toLowerCase().includes('interview feedback') || text.toLowerCase().includes('interview form')) {
+        formType = 'interview';
+      } else if (text.toLowerCase().includes('debrief')) {
+        formType = 'debrief';
+      }
+
       // Extract date
       const dateMatch = text.match(/((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2},?\s*\d{4}|\d{1,2}\/\d{1,2}\/\d{2,4})/);
       
@@ -247,6 +260,7 @@
         interviewer: interviewer.substring(0, 30),
         status: hasSubmitted ? 'submitted' : 'pending',
         decision: hasSubmitted ? decision : 'none',
+        formType,
         date: dateMatch ? dateMatch[1] : ''
       });
     });
@@ -278,6 +292,12 @@
     const totalCandidates = candidates.length;
     const stageCount = Object.keys(stages).length;
 
+    // Group feedbacks by form type
+    const phoneScreenFeedbacks = feedbacks.filter(f => f.formType === 'phone_screen');
+    const interviewFeedbacks = feedbacks.filter(f => f.formType === 'interview');
+    const debriefFeedbacks = feedbacks.filter(f => f.formType === 'debrief');
+    const otherFeedbacks = feedbacks.filter(f => f.formType === 'other');
+
     // Decision logic
     let overallDecision = '';
     if (feedbacks.length > 0 && totalPending === 0) {
@@ -288,6 +308,34 @@
       } else if (totalNoHire > 0 && totalHire > 0) {
         overallDecision = 'mixed';
       }
+    }
+
+    // Helper: render a feedback group
+    function renderFeedbackGroup(title, icon, groupFeedbacks) {
+      if (groupFeedbacks.length === 0) return '';
+      const groupHire = groupFeedbacks.filter(f => f.decision === 'hire').length;
+      const groupNoHire = groupFeedbacks.filter(f => f.decision === 'no_hire').length;
+      const groupPending = groupFeedbacks.filter(f => f.status === 'pending').length;
+      
+      return `
+        <div class="tahub-form-group">
+          <div class="tahub-form-group-header">
+            <span>${icon} ${title}</span>
+            <span class="tahub-form-group-summary">
+              ${groupHire > 0 ? `<span class="tahub-badge-hire">👍${groupHire}</span>` : ''}
+              ${groupNoHire > 0 ? `<span class="tahub-badge-nohire">👎${groupNoHire}</span>` : ''}
+              ${groupPending > 0 ? `<span class="tahub-badge-pending">⏳${groupPending}</span>` : ''}
+            </span>
+          </div>
+          ${groupFeedbacks.map(f => `
+            <div class="tahub-fb-row ${f.status} ${f.decision}">
+              <span class="tahub-fb-decision">${f.decision === 'hire' ? '👍' : f.decision === 'no_hire' ? '👎' : '⏳'}</span>
+              <span class="tahub-fb-name">${f.interviewer}</span>
+              <span class="tahub-fb-status">${f.status === 'submitted' ? (f.decision === 'hire' ? 'Hire' : f.decision === 'no_hire' ? 'No Hire' : 'Done') : 'Pending'}</span>
+            </div>
+          `).join('')}
+        </div>
+      `;
     }
 
     dashboard.innerHTML = `
@@ -318,30 +366,26 @@
 
         ${feedbacks.length > 0 ? `
         <div class="tahub-dash-section">
-          <div class="tahub-dash-label">Feedback & Decision (${feedbacks.length} interviewers)</div>
+          <div class="tahub-dash-label">Feedback & Decision (${feedbacks.length} total)</div>
           <div class="tahub-feedback-summary">
             <div class="tahub-fb-item tahub-fb-done">👍 Hire: ${totalHire}</div>
-            <div class="tahub-fb-item tahub-fb-nohire">👎 No Hire: ${totalNoHire}</div>
-            <div class="tahub-fb-item tahub-fb-pending">⏳ Pending: ${totalPending}</div>
+            <div class="tahub-fb-item tahub-fb-nohire">👎 No: ${totalNoHire}</div>
+            <div class="tahub-fb-item tahub-fb-pending">⏳ Wait: ${totalPending}</div>
           </div>
           
           ${overallDecision ? `
           <div class="tahub-decision-banner ${overallDecision}">
-            ${overallDecision === 'all_hire' ? '✅ ALL INTERVIEWERS SAY HIRE → Advance candidate' : ''}
-            ${overallDecision === 'all_no_hire' ? '❌ ALL INTERVIEWERS SAY NO HIRE → Dispose candidate' : ''}
-            ${overallDecision === 'mixed' ? '⚠️ MIXED SIGNALS — Review feedback details before deciding' : ''}
+            ${overallDecision === 'all_hire' ? '✅ ALL HIRE → Advance candidate' : ''}
+            ${overallDecision === 'all_no_hire' ? '❌ ALL NO HIRE → Dispose candidate' : ''}
+            ${overallDecision === 'mixed' ? '⚠️ MIXED — Review with hiring manager' : ''}
           </div>
           ` : ''}
           
-          <div class="tahub-feedback-list">
-            ${feedbacks.map(f => `
-              <div class="tahub-fb-row ${f.status} ${f.decision}">
-                <span class="tahub-fb-decision">${f.decision === 'hire' ? '👍' : f.decision === 'no_hire' ? '👎' : '⏳'}</span>
-                <span class="tahub-fb-name">${f.interviewer}</span>
-                <span class="tahub-fb-status">${f.status === 'submitted' ? (f.decision === 'hire' ? 'Hire' : f.decision === 'no_hire' ? 'No Hire' : 'Submitted') : 'Pending'}</span>
-                <span class="tahub-fb-date">${f.date}</span>
-              </div>
-            `).join('')}
+          <div class="tahub-feedback-groups">
+            ${renderFeedbackGroup('Phone Screen', '📞', phoneScreenFeedbacks)}
+            ${renderFeedbackGroup('Interview', '🎤', interviewFeedbacks)}
+            ${renderFeedbackGroup('Debrief', '📋', debriefFeedbacks)}
+            ${renderFeedbackGroup('Other', '📝', otherFeedbacks)}
           </div>
         </div>
         ` : `
