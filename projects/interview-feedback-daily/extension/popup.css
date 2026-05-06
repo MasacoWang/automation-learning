@@ -1,0 +1,139 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  width: 380px;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-size: 13px;
+  color: #1f2937;
+  background: #f8fafc;
+  padding: 16px;
+}
+
+header { margin-bottom: 16px; }
+h1 { font-size: 18px; font-weight: 700; }
+.subtitle { font-size: 12px; color: #6b7280; margin-top: 2px; }
+
+h2 { font-size: 14px; font-weight: 600; }
+
+.actions { margin-bottom: 12px; }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-primary { background: #4f46e5; color: #fff; width: 100%; justify-content: center; }
+.btn-primary:hover { background: #4338ca; }
+.btn-copy { background: #e5e7eb; color: #374151; }
+.btn-copy:hover { background: #d1d5db; }
+.btn-email { background: #0078d4; color: #fff; }
+.btn-email:hover { background: #006abc; }
+.btn-teams { background: #5b5fc7; color: #fff; }
+.btn-teams:hover { background: #4b4fb7; }
+.btn-small { background: #4f46e5; color: #fff; padding: 6px 12px; font-size: 11px; border: none; border-radius: 6px; cursor: pointer; }
+.btn-link { background: none; border: none; color: #6b7280; cursor: pointer; font-size: 12px; padding: 4px 0; }
+.btn-link:hover { color: #4f46e5; }
+
+.share-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.summary-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.badge {
+  background: #dbeafe;
+  color: #1e40af;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.candidate-list {
+  max-height: 260px;
+  overflow-y: auto;
+  margin-bottom: 4px;
+}
+
+.candidate-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+}
+.candidate-card h3 {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.candidate-card .meta {
+  font-size: 11px;
+  color: #6b7280;
+  margin-bottom: 6px;
+}
+.feedback-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  padding: 3px 0;
+}
+.feedback-row .icon { font-size: 14px; }
+.feedback-row .name { font-weight: 500; }
+.feedback-row .form-type { color: #6b7280; font-size: 11px; }
+.feedback-row .date { color: #9ca3af; font-size: 11px; margin-left: auto; }
+
+.settings-toggle { margin-top: 12px; text-align: center; }
+
+#settingsSection {
+  margin-top: 12px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px;
+}
+#settingsSection label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b7280;
+  margin-bottom: 4px;
+  margin-top: 8px;
+  text-transform: uppercase;
+}
+#settingsSection label:first-child { margin-top: 0; }
+#settingsSection input {
+  width: 100%;
+  padding: 7px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.status {
+  margin-top: 10px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  text-align: center;
+}
+.status.success { background: #d1fae5; color: #065f46; }
+.status.error { background: #fee2e2; color: #991b1b; }
+.status.info { background: #dbeafe; color: #1e40af; }
+
+.hidden { display: none; }

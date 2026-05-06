@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Interview Feedback Daily</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header>
+    <h1>📋 Feedback Daily</h1>
+    <p class="subtitle">Extract & share interview feedback</p>
+  </header>
+
+  <section class="actions">
+    <button id="extractBtn" class="btn btn-primary">🔄 Extract from Page</button>
+  </section>
+
+  <section id="summarySection" class="hidden">
+    <div class="summary-header">
+      <h2 id="reqTitle">—</h2>
+      <span id="countBadge" class="badge">0 feedback</span>
+    </div>
+
+    <div id="candidateList" class="candidate-list"></div>
+
+    <div class="share-actions">
+      <button id="copyBtn" class="btn btn-copy">📋 Copy</button>
+      <button id="emailBtn" class="btn btn-email">📧 Email</button>
+      <button id="teamsBtn" class="btn btn-teams">💬 Teams</button>
+    </div>
+  </section>
+
+  <section class="settings-toggle">
+    <button id="toggleSettings" class="btn-link">⚙️ Settings</button>
+  </section>
+
+  <section id="settingsSection" class="hidden">
+    <label>Teams Webhook URL (optional)</label>
+    <input type="text" id="webhookUrl" placeholder="https://outlook.office.com/webhook/...">
+    <label>Send summary to email</label>
+    <input type="email" id="emailTo" placeholder="you@microsoft.com">
+    <button id="saveSettings" class="btn btn-small">Save</button>
+  </section>
+
+  <div id="statusMsg" class="status hidden"></div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
