@@ -270,15 +270,32 @@ function findCandidateName(lines) {
 
 // ===== GET REQ LINKS FOR AUTO-SCAN =====
 function getReqLinksWithInterviews() {
-  // Find all clickable req links on the page
+  // Only grab the actual requisition title links (not calibration, assessment, etc.)
   const links = [];
+  const seen = new Set();
+
   document.querySelectorAll('a[href]').forEach(a => {
     const text = a.textContent.trim();
     const href = a.href;
-    if (text.match(/\(\d{9}\)/) && href) {
-      links.push({ url: href, title: text });
-    }
+
+    // Must contain a 9-digit req ID in parentheses
+    const idMatch = text.match(/\((\d{9})\)/);
+    if (!idMatch) return;
+
+    // Must look like a job title (contains role keywords)
+    if (!text.match(/engineer|scientist|manager|designer|analyst|developer|specialist|director|lead|technician|architect|marshal/i)) return;
+
+    // Skip if text contains action words (calibration, assessment, etc.)
+    if (text.match(/calibration|assessment|create|confirm|delete|edit/i)) return;
+
+    // Skip duplicates
+    const reqId = idMatch[1];
+    if (seen.has(reqId)) return;
+    seen.add(reqId);
+
+    links.push({ url: href, title: text.split('\n')[0].trim() });
   });
+
   return links;
 }
 
