@@ -37,7 +37,8 @@ Shows: 👍 Hire | 👎 No Hire | ⏳ Pending — grouped by Phone Screen vs Int
 
 ### Excel Tracker (DECIDED)
 - Columns: Date | Req ID | Position | Candidate | Interviewer | Type | Decision | Notes
-- File: `Interview_Feedback_Tracker.xlsx` (upload to OneDrive for Power Automate)
+- File: `C:\Users\claricewang\OneDrive - Microsoft\AI Tool\interview feedback\Interview_Feedback_Tracker.xlsx`
+- Already on OneDrive ✅ — Power Automate can reference it directly
 - Power Automate adds a row each time new feedback arrives
 
 ### Extension Enhancement (PARKED)
@@ -99,9 +100,9 @@ projects/interview-feedback-daily/
 ## 💡 To Continue on Another Laptop
 
 1. Clone: `git clone https://github.com/MasacoWang/automation-learning`
-2. Open Copilot CLI and say: "Continue working on interview-feedback-daily project, see STATUS.md"
+2. Open Copilot CLI and say: **"Continue interview feedback"**
 3. Main task: Set up the Power Automate flow (follow `POWER_AUTOMATE_SETUP.md`)
-4. Then: Create Excel on OneDrive and add the "Add row to Excel" step
+4. Excel is on OneDrive: `OneDrive - Microsoft\AI Tool\interview feedback\Interview_Feedback_Tracker.xlsx`
 
 ---
 
