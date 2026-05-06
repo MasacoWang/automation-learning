@@ -276,7 +276,7 @@ function renderSummary(data) {
   $('#summarySection').classList.remove('hidden');
 
   if (data.isHomepage) {
-    // Homepage view — show req overview
+    // Homepage view — show req overview with clickable links
     $('#reqTitle').textContent = 'My Active Requisitions';
     const totalScreen = data.reqs ? data.reqs.reduce((s, r) => s + r.screen, 0) : 0;
     const totalInterview = data.reqs ? data.reqs.reduce((s, r) => s + r.interview, 0) : 0;
@@ -288,7 +288,7 @@ function renderSummary(data) {
     if (data.reqs && data.reqs.length > 0) {
       data.reqs.forEach(req => {
         const card = document.createElement('div');
-        card.className = 'candidate-card';
+        card.className = 'candidate-card clickable-card';
         card.innerHTML = `
           <h3>🎯 ${req.title} (${req.id})</h3>
           <div class="meta">HM: ${req.hiringManager}</div>
@@ -296,7 +296,16 @@ function renderSummary(data) {
             ${req.screen > 0 ? `<span class="badge badge-pending">📞 ${req.screen} Screen</span>` : ''}
             ${req.interview > 0 ? `<span class="badge badge-hire">🎤 ${req.interview} Interview</span>` : ''}
           </div>
+          <div class="click-hint">▶ Click to view feedback</div>
         `;
+        card.addEventListener('click', () => {
+          // Navigate to this req's pipeline page then the user can extract feedback there
+          chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
+            // Try to find and click the req link on the page
+            chrome.tabs.sendMessage(tab.id, { action: 'navigateToReq', reqId: req.id });
+            showStatus(`Opening ${req.title}...`, 'info');
+          });
+        });
         list.appendChild(card);
       });
     } else {

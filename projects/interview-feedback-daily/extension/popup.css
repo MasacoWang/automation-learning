@@ -83,6 +83,19 @@ h2 { font-size: 14px; font-weight: 600; }
   font-weight: 600;
   margin-bottom: 8px;
 }
+.clickable-card {
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.clickable-card:hover {
+  border-color: #4f46e5;
+  background: #f0f0ff;
+}
+.click-hint {
+  font-size: 11px;
+  color: #6b7280;
+  margin-top: 6px;
+}
 .overview-badges {
   display: flex;
   gap: 6px;
