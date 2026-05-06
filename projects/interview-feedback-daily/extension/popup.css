@@ -31,6 +31,8 @@ h2 { font-size: 14px; font-weight: 600; }
 }
 .btn-primary { background: #4f46e5; color: #fff; width: 100%; justify-content: center; }
 .btn-primary:hover { background: #4338ca; }
+.btn-secondary { background: #e5e7eb; color: #374151; width: 100%; justify-content: center; margin-top: 8px; }
+.btn-secondary:hover { background: #d1d5db; }
 .btn-copy { background: #e5e7eb; color: #374151; }
 .btn-copy:hover { background: #d1d5db; }
 .btn-email { background: #0078d4; color: #fff; }

@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
   "name": "Interview Feedback Daily",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Extracts interview feedback from TA Hub and shows daily summary with Teams/Email sharing",
-  "permissions": ["activeTab", "storage"],
+  "permissions": ["activeTab", "storage", "tabs"],
   "host_permissions": ["https://careerhub.microsoft.com/*"],
   "action": {
     "default_popup": "popup.html",
@@ -12,6 +12,9 @@
       "48": "icons/icon48.png",
       "128": "icons/icon128.png"
     }
+  },
+  "background": {
+    "service_worker": "background.js"
   },
   "content_scripts": [
     {
