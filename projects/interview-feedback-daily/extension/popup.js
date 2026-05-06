@@ -274,40 +274,70 @@ $('#teamsBtn').addEventListener('click', async () => {
 
 function renderSummary(data) {
   $('#summarySection').classList.remove('hidden');
-  $('#reqTitle').textContent = data.requisition || 'Unknown Req';
-  $('#countBadge').textContent = `${data.totalFeedback} feedback`;
 
-  const list = $('#candidateList');
-  list.innerHTML = '';
+  if (data.isHomepage) {
+    // Homepage view — show req overview
+    $('#reqTitle').textContent = 'My Active Requisitions';
+    const totalScreen = data.reqs ? data.reqs.reduce((s, r) => s + r.screen, 0) : 0;
+    const totalInterview = data.reqs ? data.reqs.reduce((s, r) => s + r.interview, 0) : 0;
+    $('#countBadge').textContent = `${totalScreen} Screen | ${totalInterview} Interview`;
 
-  data.candidates.forEach(c => {
-    const card = document.createElement('div');
-    card.className = 'candidate-card';
+    const list = $('#candidateList');
+    list.innerHTML = '';
 
-    // Group feedback by interview type
-    const phoneScreen = c.feedback.filter(f => f.formType === 'Phone Screen');
-    const interview = c.feedback.filter(f => f.formType === 'Interview');
-    const other = c.feedback.filter(f => f.formType !== 'Phone Screen' && f.formType !== 'Interview');
+    if (data.reqs && data.reqs.length > 0) {
+      data.reqs.forEach(req => {
+        const card = document.createElement('div');
+        card.className = 'candidate-card';
+        card.innerHTML = `
+          <h3>🎯 ${req.title} (${req.id})</h3>
+          <div class="meta">HM: ${req.hiringManager}</div>
+          <div class="overview-badges">
+            ${req.screen > 0 ? `<span class="badge badge-pending">📞 ${req.screen} Screen</span>` : ''}
+            ${req.interview > 0 ? `<span class="badge badge-hire">🎤 ${req.interview} Interview</span>` : ''}
+          </div>
+        `;
+        list.appendChild(card);
+      });
+    } else {
+      const empty = document.createElement('div');
+      empty.className = 'candidate-card';
+      empty.innerHTML = '<p>✅ No candidates in Screen/Interview stage.</p>';
+      list.appendChild(empty);
+    }
+  } else {
+    // Feedback tab view — show detailed feedback
+    $('#reqTitle').textContent = data.requisition || 'Unknown Req';
+    $('#countBadge').textContent = `${data.totalFeedback} feedback`;
 
-    // Group by decision
-    const hire = c.feedback.filter(f => f.decision === 'hire');
-    const noHire = c.feedback.filter(f => f.decision === 'no-hire');
-    const pending = c.feedback.filter(f => f.status === 'pending');
+    const list = $('#candidateList');
+    list.innerHTML = '';
 
-    card.innerHTML = `
-      <h3>👤 ${c.name}</h3>
-      <div class="overview-badges">
-        <span class="badge badge-hire">👍 ${hire.length} Hire</span>
-        <span class="badge badge-nohire">👎 ${noHire.length} No Hire</span>
-        <span class="badge badge-pending">⏳ ${pending.length} Pending</span>
-      </div>
+    data.candidates.forEach(c => {
+      const card = document.createElement('div');
+      card.className = 'candidate-card';
 
-      ${renderGroup('📞 Phone Screen', phoneScreen)}
-      ${renderGroup('🎤 Interview', interview)}
-      ${other.length > 0 ? renderGroup('📝 Other', other) : ''}
-    `;
-    list.appendChild(card);
-  });
+      const phoneScreen = c.feedback.filter(f => f.formType === 'Phone Screen');
+      const interview = c.feedback.filter(f => f.formType === 'Interview');
+      const other = c.feedback.filter(f => f.formType !== 'Phone Screen' && f.formType !== 'Interview');
+      const hire = c.feedback.filter(f => f.decision === 'hire');
+      const noHire = c.feedback.filter(f => f.decision === 'no-hire');
+      const pending = c.feedback.filter(f => f.status === 'pending');
+
+      card.innerHTML = `
+        <h3>👤 ${c.name}</h3>
+        <div class="overview-badges">
+          <span class="badge badge-hire">👍 ${hire.length} Hire</span>
+          <span class="badge badge-nohire">👎 ${noHire.length} No Hire</span>
+          <span class="badge badge-pending">⏳ ${pending.length} Pending</span>
+        </div>
+        ${renderGroup('📞 Phone Screen', phoneScreen)}
+        ${renderGroup('🎤 Interview', interview)}
+        ${other.length > 0 ? renderGroup('📝 Other', other) : ''}
+      `;
+      list.appendChild(card);
+    });
+  }
 }
 
 function renderGroup(title, feedbackList) {

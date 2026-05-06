@@ -1,13 +1,13 @@
-// content.js — Text-based extraction that works regardless of CSS class names
+// content.js — Extracts data from both homepage (req list) and candidate feedback tab
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'extractFeedback') {
-    const data = extractFeedback();
+    const data = extractFromCurrentPage();
     const summaryText = formatSummary(data);
     sendResponse({ data, summaryText });
   }
   if (request.action === 'getReqLinks') {
-    sendResponse({ links: getReqLinks() });
+    sendResponse({ links: getReqLinksWithInterviews() });
   }
   if (request.action === 'debugPage') {
     sendResponse({ text: document.body.innerText.substring(0, 5000) });
@@ -15,39 +15,146 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   return true;
 });
 
-function getReqLinks() {
-  const links = [];
-  document.querySelectorAll('a[href]').forEach(a => {
-    const href = a.href || '';
-    if (href.match(/pipeline|requisition|pid=|req_id=/i)) {
-      const title = a.textContent.trim();
-      if (title.length > 3 && title.length < 200 && !links.find(l => l.url === href)) {
-        links.push({ url: href, title });
-      }
-    }
-  });
-  return links;
+// ===== DETECT PAGE TYPE & EXTRACT =====
+function extractFromCurrentPage() {
+  const pageText = document.body.innerText;
+
+  // Detect if we're on the homepage (req list) or a candidate feedback page
+  if (pageText.includes('Showing') && pageText.includes('requisitions')) {
+    return extractFromHomepage(pageText);
+  } else if (pageText.match(/Submitted|Pending/i) && pageText.match(/Interview Feedback|Person Screen/i)) {
+    return extractFromFeedbackTab(pageText);
+  } else {
+    // Try feedback tab extraction anyway
+    return extractFromFeedbackTab(pageText);
+  }
 }
 
-function extractFeedback() {
-  const pageText = document.body.innerText;
+// ===== HOMEPAGE EXTRACTION =====
+// Parses the req list table to show pipeline overview
+function extractFromHomepage(pageText) {
+  const data = {
+    requisition: 'All My Requisitions',
+    candidates: [],
+    totalFeedback: 0,
+    isHomepage: true,
+    reqs: [],
+    extractedAt: new Date().toISOString()
+  };
+
+  const lines = pageText.split('\n').map(l => l.trim()).filter(Boolean);
+
+  // Parse each requisition block
+  // Pattern: "Title (ID)\nLocation • HM • Recruiter Open\n...\nDays\tProspects\tNew\tReview\tScreen\tInterview\tOffer"
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i];
+
+    // Match requisition title with ID
+    const reqMatch = line.match(/^(.+?)\s*\((\d{9})\)$/);
+    if (reqMatch) {
+      const reqTitle = reqMatch[1].trim();
+      const reqId = reqMatch[2];
+
+      // Look ahead for location/HM line and numbers
+      let location = '', hiringManager = '', screen = 0, interview = 0;
+
+      for (let j = i + 1; j < Math.min(i + 10, lines.length); j++) {
+        const next = lines[j];
+
+        // Location line: "Taiwan, Taipei City, Taipei  •  Allen Sun  •  Clarice Wang   Open"
+        if (next.includes('•') && next.match(/Open|Closed/i)) {
+          const parts = next.split('•').map(p => p.trim());
+          location = parts[0] || '';
+          hiringManager = parts[1] || '';
+        }
+
+        // Number row — we need Screen and Interview columns
+        // The columns are: Days Open | Prospects | New Applicant | Review | Screen | Interview | Offer
+        // Numbers appear as separate lines or tab-separated
+        const numMatch = next.match(/^(\d+[\d,.km]*)\s*$/i);
+        if (numMatch) {
+          // Skip — numbers come as individual lines after the req
+        }
+      }
+
+      // Try to find the numbers for this req by looking for the sequence
+      // After the req title + location line, there should be 7 numbers
+      const numbers = [];
+      for (let j = i + 1; j < Math.min(i + 20, lines.length); j++) {
+        const next = lines[j];
+        // Check if it's a number (including formats like 1.7k, 1.3m, etc.)
+        if (next.match(/^[\d,.]+[km]?$/i) || next === '0') {
+          numbers.push(parseNumber(next));
+          if (numbers.length === 7) break;
+        }
+        // If we hit another req title, stop
+        if (next.match(/\(\d{9}\)$/) && j > i + 2) break;
+      }
+
+      if (numbers.length >= 7) {
+        // Order: Days Open, Prospects, New Applicant, Review, Screen, Interview, Offer
+        screen = numbers[4];
+        interview = numbers[5];
+      }
+
+      if (screen > 0 || interview > 0) {
+        data.reqs.push({
+          title: reqTitle,
+          id: reqId,
+          hiringManager: hiringManager,
+          screen: screen,
+          interview: interview,
+          location: location
+        });
+        data.totalFeedback += screen + interview;
+      }
+
+      // Also add as "candidate" for display purposes
+      if (screen > 0 || interview > 0) {
+        const feedback = [];
+        if (screen > 0) feedback.push({ interviewer: `${screen} candidate(s)`, formType: 'Phone Screen', decision: 'unknown', status: 'in-progress', date: '' });
+        if (interview > 0) feedback.push({ interviewer: `${interview} candidate(s)`, formType: 'Interview', decision: 'unknown', status: 'in-progress', date: '' });
+        data.candidates.push({
+          name: `${reqTitle} (${reqId})`,
+          hiringManager: hiringManager,
+          feedback: feedback
+        });
+      }
+    }
+    i++;
+  }
+
+  return data;
+}
+
+function parseNumber(str) {
+  if (!str) return 0;
+  str = str.toLowerCase().replace(/,/g, '');
+  if (str.endsWith('k')) return Math.round(parseFloat(str) * 1000);
+  if (str.endsWith('m')) return Math.round(parseFloat(str) * 1000000);
+  return parseInt(str) || 0;
+}
+
+// ===== FEEDBACK TAB EXTRACTION =====
+function extractFromFeedbackTab(pageText) {
   const lines = pageText.split('\n').map(l => l.trim()).filter(Boolean);
 
   const data = {
     requisition: findReqTitle(lines),
     candidates: [],
     totalFeedback: 0,
+    isHomepage: false,
     extractedAt: new Date().toISOString()
   };
 
-  // Find all "Submitted" and "Pending" occurrences using DOM TreeWalker
-  // This is the most reliable way — find status text nodes, then walk up to get context
-  const feedbackEntries = findFeedbackByStatus();
+  // Use TreeWalker to find "Submitted" and "Pending" text nodes
+  const entries = findFeedbackByStatus();
 
-  if (feedbackEntries.length > 0) {
+  if (entries.length > 0) {
     const candidateName = findCandidateName(lines);
-    data.candidates.push({ name: candidateName, feedback: feedbackEntries });
-    data.totalFeedback = feedbackEntries.length;
+    data.candidates.push({ name: candidateName, feedback: entries });
+    data.totalFeedback = entries.length;
   }
 
   return data;
@@ -56,7 +163,6 @@ function extractFeedback() {
 function findFeedbackByStatus() {
   const entries = [];
 
-  // Use TreeWalker to find exact "Submitted" and "Pending" text nodes
   const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
     acceptNode: (node) => {
       const t = node.textContent.trim();
@@ -68,14 +174,11 @@ function findFeedbackByStatus() {
   while (walker.nextNode()) statusNodes.push(walker.currentNode);
 
   statusNodes.forEach(node => {
-    // Walk up to find the row/container (look for a parent that contains all the info)
     let container = node.parentElement;
     for (let i = 0; i < 8; i++) {
       if (!container || !container.parentElement) break;
-      const childText = container.innerText || '';
-      const childLines = childText.split('\n').filter(l => l.trim()).length;
-      // Feedback row usually has 3-10 lines and contains form type keywords
-      if (childLines >= 3 && childText.match(/Interview Feedback|Person Screen|Quick Notes|Quick Feedback/i)) break;
+      const text = container.innerText || '';
+      if (text.match(/Interview Feedback|Person Screen|Quick Notes|Quick Feedback/i)) break;
       container = container.parentElement;
     }
 
@@ -83,8 +186,6 @@ function findFeedbackByStatus() {
 
     const text = container.innerText || '';
     const fb = parseContainerText(text, node.textContent.trim());
-
-    // Try to detect hire/no-hire from colored elements in this container
     detectDecisionFromColors(container, fb);
 
     if (fb.interviewer || fb.formType) {
@@ -107,24 +208,18 @@ function parseContainerText(text, status) {
   const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
 
   for (const line of lines) {
-    // Form type
     if (!fb.formType) {
       if (line.match(/Interview Feedback/i)) fb.formType = 'Interview';
       else if (line.match(/Person Screen/i)) fb.formType = 'Phone Screen';
       else if (line.match(/Quick (Notes|Feedback)/i)) fb.formType = 'Quick Notes';
     }
 
-    // Date
     if (!fb.date) {
       const dateMatch = line.match(/((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\w*\.?\s+\d{1,2},?\s*\d{0,4})/i);
       if (dateMatch) fb.date = dateMatch[1];
     }
 
-    // Interviewer name: looks like "Firstname Lastname" or "Firstname Last..."
-    // Skip lines that are form types, statuses, dates, or too long
-    if (!fb.interviewer &&
-        line.length > 3 && line.length < 50 &&
-        line.match(/^[A-Z]/) &&
+    if (!fb.interviewer && line.length > 3 && line.length < 50 && line.match(/^[A-Z]/) &&
         !line.match(/^(Interview|Person|Phone|Quick|Submitted|Pending|Send|Feedback|Form|View|Notes|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)/i)) {
       fb.interviewer = line;
     }
@@ -135,8 +230,6 @@ function parseContainerText(text, status) {
 
 function detectDecisionFromColors(container, fb) {
   if (fb.status === 'pending') return;
-
-  // Look for SVGs with green/red fills
   const svgs = container.querySelectorAll('svg');
   for (const svg of svgs) {
     const elements = [svg, ...svg.querySelectorAll('path, circle, rect, g')];
@@ -144,56 +237,18 @@ function detectDecisionFromColors(container, fb) {
       const fill = (el.getAttribute('fill') || '').toLowerCase();
       const stroke = (el.getAttribute('stroke') || '').toLowerCase();
       const color = fill || stroke;
-
-      // Green = hire
-      if (color.match(/#22c55e|#16a34a|#10b981|#34d399|#4ade80|#059669|#15803d|#166534|green|#00a|#0a0/)) {
-        fb.decision = 'hire'; return;
-      }
-      // Red = no hire
-      if (color.match(/#ef4444|#dc2626|#f87171|#b91c1c|#991b1b|#7f1d1d|red|#e00|#d00|#c00/)) {
-        fb.decision = 'no-hire'; return;
-      }
+      if (color.match(/#22c55e|#16a34a|#10b981|#34d399|#4ade80|#059669|#15803d|green/)) { fb.decision = 'hire'; return; }
+      if (color.match(/#ef4444|#dc2626|#f87171|#b91c1c|#991b1b|red/)) { fb.decision = 'no-hire'; return; }
     }
   }
-
-  // Check computed colors on any icon-like elements
-  const icons = container.querySelectorAll('i, span, div');
-  for (const icon of icons) {
-    if (icon.children.length > 2) continue; // skip containers
-    try {
-      const style = window.getComputedStyle(icon);
-      const color = style.color;
-      const bg = style.backgroundColor;
-
-      if (isGreenColor(color) || isGreenColor(bg)) { fb.decision = 'hire'; return; }
-      if (isRedColor(color) || isRedColor(bg)) { fb.decision = 'no-hire'; return; }
-    } catch (e) {}
-  }
-}
-
-function isGreenColor(color) {
-  if (!color || color === 'rgba(0, 0, 0, 0)' || color === 'rgb(0, 0, 0)') return false;
-  const m = color.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
-  if (m) {
-    const [, r, g, b] = [0, +m[1], +m[2], +m[3]];
-    return g > 140 && r < 140 && b < 140;
-  }
-  return false;
-}
-
-function isRedColor(color) {
-  if (!color || color === 'rgba(0, 0, 0, 0)' || color === 'rgb(0, 0, 0)') return false;
-  const m = color.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
-  if (m) {
-    const [, r, g, b] = [0, +m[1], +m[2], +m[3]];
-    return r > 170 && g < 120 && b < 120;
-  }
-  return false;
 }
 
 function findReqTitle(lines) {
-  const idMatch = lines.join(' ').match(/(\d{9})/);
+  const idMatch = lines.join(' ').match(/\((\d{9})\)/);
   for (const line of lines.slice(0, 40)) {
+    if (line.match(/\(\d{9}\)/) && line.length < 100) {
+      return line;
+    }
     if (line.match(/engineer|scientist|manager|designer|analyst|developer|specialist|director|lead/i) &&
         line.length > 5 && line.length < 100) {
       return idMatch ? `${line} (${idMatch[1]})` : line;
@@ -203,63 +258,102 @@ function findReqTitle(lines) {
 }
 
 function findCandidateName(lines) {
-  // Candidate name is usually prominent near top, before feedback details
   for (const line of lines.slice(0, 50)) {
     if (line.length > 3 && line.length < 40 &&
         line.match(/^[A-Z][a-z]+[\s-][A-Z]/) &&
-        !line.match(/^(Senior|Junior|Staff|Principal|Interview|Person|Phone|Quick|Submitted|Pending|Microsoft|Feedback|All Active|Open|Pipeline)/i)) {
+        !line.match(/^(Senior|Junior|Staff|Principal|Interview|Person|Phone|Quick|Submitted|Pending|Microsoft|Feedback|All Active|Open|Pipeline|Taiwan|Hong Kong|TALENT)/i)) {
       return line;
     }
   }
   return 'Unknown Candidate';
 }
 
+// ===== GET REQ LINKS FOR AUTO-SCAN =====
+function getReqLinksWithInterviews() {
+  // Find all clickable req links on the page
+  const links = [];
+  document.querySelectorAll('a[href]').forEach(a => {
+    const text = a.textContent.trim();
+    const href = a.href;
+    if (text.match(/\(\d{9}\)/) && href) {
+      links.push({ url: href, title: text });
+    }
+  });
+  return links;
+}
+
+// ===== FORMAT SUMMARY =====
 function formatSummary(data) {
   const lines = [];
   const today = new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
 
   lines.push('📋 INTERVIEW FEEDBACK SUMMARY');
   lines.push(`📅 ${today}`);
-  lines.push(`🎯 ${data.requisition}`);
   lines.push('━'.repeat(40));
 
-  if (data.candidates.length === 0) {
+  if (data.isHomepage) {
     lines.push('');
-    lines.push('⚠️ No feedback found.');
-    lines.push('Open a candidate → Feedback tab, then try again.');
-    return lines.join('\n');
-  }
-
-  data.candidates.forEach(c => {
-    const ps = c.feedback.filter(f => f.formType === 'Phone Screen');
-    const iv = c.feedback.filter(f => f.formType === 'Interview');
-    const other = c.feedback.filter(f => f.formType !== 'Phone Screen' && f.formType !== 'Interview');
-    const hire = c.feedback.filter(f => f.decision === 'hire').length;
-    const noHire = c.feedback.filter(f => f.decision === 'no-hire').length;
-    const pending = c.feedback.filter(f => f.status === 'pending').length;
-
+    lines.push('📊 REQUISITIONS WITH ACTIVE SCREEN/INTERVIEW:');
     lines.push('');
-    lines.push(`👤 ${c.name}`);
-    lines.push(`   👍 ${hire} Hire | 👎 ${noHire} No Hire | ⏳ ${pending} Pending`);
 
-    const printGroup = (title, list) => {
-      if (list.length === 0) return;
-      lines.push(`   ┌ ${title} (${list.length})`);
-      list.forEach(f => {
-        const icon = f.decision === 'hire' ? '👍' : f.decision === 'no-hire' ? '👎' : '⏳';
-        lines.push(`   │ ${icon} ${f.interviewer} ${f.date ? '(' + f.date + ')' : ''}`);
+    if (data.reqs && data.reqs.length > 0) {
+      data.reqs.forEach(req => {
+        lines.push(`🎯 ${req.title} (${req.id})`);
+        lines.push(`   HM: ${req.hiringManager}`);
+        if (req.screen > 0) lines.push(`   📞 Screen: ${req.screen} candidate(s)`);
+        if (req.interview > 0) lines.push(`   🎤 Interview: ${req.interview} candidate(s)`);
+        lines.push('');
       });
-    };
 
-    printGroup('📞 PHONE SCREEN', ps);
-    printGroup('🎤 INTERVIEW', iv);
-    printGroup('📝 OTHER', other);
-  });
+      const totalScreen = data.reqs.reduce((s, r) => s + r.screen, 0);
+      const totalInterview = data.reqs.reduce((s, r) => s + r.interview, 0);
+      lines.push('─'.repeat(30));
+      lines.push(`📊 TOTAL: ${totalScreen} in Screen | ${totalInterview} in Interview`);
+      lines.push(`   across ${data.reqs.length} requisitions`);
+    } else {
+      lines.push('✅ No candidates currently in Screen/Interview stage.');
+    }
+  } else {
+    lines.push(`🎯 ${data.requisition}`);
 
-  const pending = data.candidates.flatMap(c => c.feedback.filter(f => f.status === 'pending'));
-  if (pending.length > 0) {
-    lines.push('');
-    lines.push(`⚡ ACTION: ${pending.length} feedback still pending!`);
+    if (data.candidates.length === 0) {
+      lines.push('');
+      lines.push('⚠️ No feedback found.');
+      lines.push('Open a candidate → Feedback tab, then try again.');
+      return lines.join('\n');
+    }
+
+    data.candidates.forEach(c => {
+      const ps = c.feedback.filter(f => f.formType === 'Phone Screen');
+      const iv = c.feedback.filter(f => f.formType === 'Interview');
+      const other = c.feedback.filter(f => f.formType !== 'Phone Screen' && f.formType !== 'Interview');
+      const hire = c.feedback.filter(f => f.decision === 'hire').length;
+      const noHire = c.feedback.filter(f => f.decision === 'no-hire').length;
+      const pending = c.feedback.filter(f => f.status === 'pending').length;
+
+      lines.push('');
+      lines.push(`👤 ${c.name}`);
+      lines.push(`   👍 ${hire} Hire | 👎 ${noHire} No Hire | ⏳ ${pending} Pending`);
+
+      const printGroup = (title, list) => {
+        if (list.length === 0) return;
+        lines.push(`   ┌ ${title} (${list.length})`);
+        list.forEach(f => {
+          const icon = f.decision === 'hire' ? '👍' : f.decision === 'no-hire' ? '👎' : '⏳';
+          lines.push(`   │ ${icon} ${f.interviewer} ${f.date ? '(' + f.date + ')' : ''}`);
+        });
+      };
+
+      printGroup('📞 PHONE SCREEN', ps);
+      printGroup('🎤 INTERVIEW', iv);
+      printGroup('📝 OTHER', other);
+    });
+
+    const pending = data.candidates.flatMap(c => c.feedback.filter(f => f.status === 'pending'));
+    if (pending.length > 0) {
+      lines.push('');
+      lines.push(`⚡ ACTION: ${pending.length} feedback still pending!`);
+    }
   }
 
   return lines.join('\n');
