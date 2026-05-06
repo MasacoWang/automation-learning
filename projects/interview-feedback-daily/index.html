@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interview Feedback Daily — Setup</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 40px 20px;
+      color: #1a1a2e;
+    }
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 16px;
+      padding: 40px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    h1 { font-size: 28px; margin-bottom: 8px; }
+    .subtitle { color: #6b7280; margin-bottom: 32px; font-size: 15px; }
+    
+    .step {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+    .step-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px; height: 28px;
+      background: #4f46e5;
+      color: #fff;
+      border-radius: 50%;
+      font-size: 14px;
+      font-weight: 700;
+      margin-right: 10px;
+    }
+    .step h3 { display: inline; font-size: 16px; }
+    .step p { margin-top: 12px; color: #4b5563; line-height: 1.6; }
+
+    .bookmarklet-link {
+      display: inline-block;
+      margin-top: 16px;
+      padding: 14px 28px;
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      color: #fff;
+      text-decoration: none;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 15px;
+      cursor: grab;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 4px 12px rgba(79,70,229,0.4);
+    }
+    .bookmarklet-link:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(79,70,229,0.5);
+    }
+    .bookmarklet-link:active { cursor: grabbing; }
+
+    .demo-output {
+      background: #1e1e2e;
+      color: #a6e3a1;
+      padding: 20px;
+      border-radius: 10px;
+      font-family: 'Cascadia Code', 'Consolas', monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      overflow-x: auto;
+      margin-top: 16px;
+    }
+    .note {
+      background: #fef3c7;
+      border: 1px solid #f59e0b;
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 13px;
+      color: #92400e;
+      margin-top: 20px;
+    }
+    .features {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .feature {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 13px;
+    }
+    .feature strong { display: block; margin-bottom: 4px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📋 Interview Feedback Daily</h1>
+    <p class="subtitle">One-click summary of all interview feedback from TA Hub. Zero setup. Just a bookmark.</p>
+
+    <div class="features">
+      <div class="feature"><strong>✅ Zero Install</strong>Just a bookmark — no extension, no app</div>
+      <div class="feature"><strong>📊 Auto-Extract</strong>Reads feedback from the page instantly</div>
+      <div class="feature"><strong>📋 One Click Copy</strong>Summary copied to clipboard</div>
+      <div class="feature"><strong>📧 Quick Share</strong>Opens pre-filled email or Teams message</div>
+    </div>
+
+    <div class="step" style="margin-top: 32px;">
+      <span class="step-number">1</span>
+      <h3>Drag this button to your Bookmarks Bar</h3>
+      <p>Just drag the purple button below ↓ into your browser's bookmarks bar. That's it — setup done!</p>
+      <br>
+      <a class="bookmarklet-link" href="javascript:void(function(){const d=document,b=d.body.innerText;let req='Unknown Req';const h1=d.querySelector('h1');if(h1)req=h1.textContent.trim();const idM=b.match(/(\d{9})/);if(idM)req+=' ('+idM[1]+')';const rows=[];const allEls=d.querySelectorAll('[class*=row],[class*=card],[class*=item],[class*=Row]');allEls.forEach(el=>{const t=el.textContent||'';if(!t.match(/submitted|pending/i)||!t.match(/interview|feedback|screen/i))return;let interviewer='',formType='',decision='unknown',status='unknown',date='';const parts=t.split(/\n/).map(s=>s.trim()).filter(Boolean);if(parts.length>=2)interviewer=parts[0]||parts[1];if(t.match(/person\s*screen/i))formType='Phone Screen';else if(t.match(/quick\s*(feedback|notes)/i))formType='Quick Notes';else if(t.match(/interview\s*feedback/i))formType='Interview';if(t.match(/pending/i)){status='pending';decision='pending'}else if(t.match(/submitted/i)){status='submitted'}const dateM=t.match(/((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\w*\.?\s+\d{1,2},?\s*\d{4})/i);if(dateM)date=dateM[1];const greenEl=el.querySelector('[class*=positive],[class*=success],[class*=Positive],[style*=green],[class*=thumbUp],[class*=ThumbUp]');const redEl=el.querySelector('[class*=negative],[class*=danger],[class*=Negative],[style*=red],[class*=thumbDown],[class*=ThumbDown]');if(greenEl)decision='hire';else if(redEl)decision='no-hire';else{const svg=el.querySelectorAll('svg');svg.forEach(s=>{const fill=s.getAttribute('fill')||'';const cls=(s.className.baseVal||'').toLowerCase();if(fill.match(/#22|#10|#4a|green|#34d399|#6ee7b7|#a7f3d0/i)||cls.match(/up|pos|succ/))decision='hire';if(fill.match(/#ef|#f8|#dc|red|#fca5a5|#f87171/i)||cls.match(/down|neg|rej/))decision='no-hire'})}if(interviewer.length>2&&interviewer.length<50)rows.push({interviewer,formType,decision,status,date})});let lines=[];const today=new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});lines.push('📋 INTERVIEW FEEDBACK SUMMARY');lines.push('📅 '+today);lines.push('🎯 '+req);lines.push('━'.repeat(40));const hire=rows.filter(r=>r.decision==='hire').length;const noHire=rows.filter(r=>r.decision==='no-hire').length;const pend=rows.filter(r=>r.status==='pending').length;lines.push('');lines.push('📊 Overview: '+rows.length+' feedback total | 👍 '+hire+' Hire | 👎 '+noHire+' No Hire | ⏳ '+pend+' Pending');lines.push('');rows.forEach(r=>{const icon=r.decision==='hire'?'👍':r.decision==='no-hire'?'👎':'⏳';const form=r.formType?' ['+r.formType+']':'';const dt=r.date?' ('+r.date+')':'';lines.push(icon+' '+r.interviewer+form+dt)});if(pend>0){lines.push('');lines.push('⚡ ACTION: '+pend+' feedback still pending — send reminders!')}const summary=lines.join('\n');navigator.clipboard.writeText(summary).then(()=>{const overlay=d.createElement('div');overlay.id='fb-overlay';overlay.innerHTML='<div style=\"position:fixed;top:20px;right:20px;z-index:999999;background:#fff;border-radius:12px;padding:20px;box-shadow:0 8px 30px rgba(0,0,0,0.2);max-width:400px;font-family:Segoe UI,sans-serif\"><h3 style=\"margin:0 0 8px;font-size:15px\">✅ Feedback Summary Copied!</h3><pre style=\"background:#f1f5f9;padding:12px;border-radius:8px;font-size:11px;white-space:pre-wrap;max-height:250px;overflow-y:auto\">'+summary.replace(/</g,'&lt;')+'</pre><div style=\"margin-top:12px;display:flex;gap:8px\"><a href=\"https://outlook.office.com/mail/deeplink/compose?subject='+encodeURIComponent('Interview Feedback — '+today)+'&body='+encodeURIComponent(summary)+'\" target=\"_blank\" style=\"padding:8px 14px;background:#0078d4;color:#fff;border-radius:6px;text-decoration:none;font-size:12px\">📧 Email</a><button onclick=\"this.parentElement.parentElement.parentElement.remove()\" style=\"padding:8px 14px;background:#e5e7eb;border:none;border-radius:6px;cursor:pointer;font-size:12px\">✕ Close</button></div></div>';d.body.appendChild(overlay)}).catch(()=>{prompt('Copy this summary:',summary)})})();">📋 Feedback Summary</a>
+    </div>
+
+    <div class="step">
+      <span class="step-number">2</span>
+      <h3>Go to TA Hub → Open a Requisition → Click the Feedback tab</h3>
+      <p>Navigate to any requisition on <a href="https://careerhub.microsoft.com" target="_blank">TA Hub</a> and make sure the feedback section is visible (like in the screenshots).</p>
+    </div>
+
+    <div class="step">
+      <span class="step-number">3</span>
+      <h3>Click the bookmark → Done!</h3>
+      <p>The summary is instantly copied to your clipboard and a popup shows the results. You can also click "📧 Email" to open a pre-filled Outlook message.</p>
+    </div>
+
+    <div class="step">
+      <span class="step-number">🎯</span>
+      <h3>Example Output</h3>
+      <div class="demo-output">📋 INTERVIEW FEEDBACK SUMMARY
+📅 Tue, May 6, 2026
+🎯 Sr. Power Hardware Engineer (200032105)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📊 Overview: 7 feedback total | 👍 5 Hire | 👎 2 No Hire | ⏳ 1 Pending
+
+👎 Tracy Corey [Interview] (Apr 16, 2026)
+👍 James Sun [Interview] (Apr 14, 2026)
+👍 John Broze [Interview] (Apr 14, 2026)
+👎 Bryant Shih [Interview] (Apr 13, 2026)
+👍 Jamie Chen [Phone Screen] (Mar 30, 2026)
+👍 Jamie Chen [Quick Notes] (Mar 23, 2026)
+⏳ Steven Lang [Quick Notes]
+
+⚡ ACTION: 1 feedback still pending — send reminders!</div>
+    </div>
+
+    <div class="note">
+      💡 <strong>Tip:</strong> The bookmarklet only READS the page — it never changes anything in TA Hub. Data stays in your clipboard and never leaves your browser. Fully safe and compliant.
+    </div>
+  </div>
+</body>
+</html>
