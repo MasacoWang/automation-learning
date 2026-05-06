@@ -19,13 +19,17 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 function extractFromCurrentPage() {
   const pageText = document.body.innerText;
 
-  // Detect if we're on the homepage (req list) or a candidate feedback page
-  if (pageText.includes('Showing') && pageText.includes('requisitions')) {
+  // Detect homepage: has multiple req IDs, "Requisitions" header, pipeline columns
+  const reqIds = pageText.match(/\(\d{9}\)/g);
+  const isHomepage = (reqIds && reqIds.length >= 2) ||
+    (pageText.includes('My Requisitions') || pageText.includes('All Requisitions') || pageText.match(/Showing \d+ requisitions/i)) ||
+    (pageText.includes('Days Open') && pageText.includes('Prospects'));
+
+  if (isHomepage) {
     return extractFromHomepage(pageText);
   } else if (pageText.match(/Submitted|Pending/i) && pageText.match(/Interview Feedback|Person Screen/i)) {
     return extractFromFeedbackTab(pageText);
   } else {
-    // Try feedback tab extraction anyway
     return extractFromFeedbackTab(pageText);
   }
 }
@@ -44,85 +48,56 @@ function extractFromHomepage(pageText) {
 
   const lines = pageText.split('\n').map(l => l.trim()).filter(Boolean);
 
-  // Parse each requisition block
-  // Pattern: "Title (ID)\nLocation • HM • Recruiter Open\n...\nDays\tProspects\tNew\tReview\tScreen\tInterview\tOffer"
-  let i = 0;
-  while (i < lines.length) {
-    const line = lines[i];
+  // Find each req by matching "Title (9-digit-ID)" pattern
+  for (let i = 0; i < lines.length; i++) {
+    const reqMatch = lines[i].match(/^(.+?)\s*\((\d{9})\)$/);
+    if (!reqMatch) continue;
 
-    // Match requisition title with ID
-    const reqMatch = line.match(/^(.+?)\s*\((\d{9})\)$/);
-    if (reqMatch) {
-      const reqTitle = reqMatch[1].trim();
-      const reqId = reqMatch[2];
+    const reqTitle = reqMatch[1].trim();
+    const reqId = reqMatch[2];
+    let hiringManager = '';
 
-      // Look ahead for location/HM line and numbers
-      let location = '', hiringManager = '', screen = 0, interview = 0;
-
-      for (let j = i + 1; j < Math.min(i + 10, lines.length); j++) {
-        const next = lines[j];
-
-        // Location line: "Taiwan, Taipei City, Taipei  •  Allen Sun  •  Clarice Wang   Open"
-        if (next.includes('•') && next.match(/Open|Closed/i)) {
-          const parts = next.split('•').map(p => p.trim());
-          location = parts[0] || '';
-          hiringManager = parts[1] || '';
-        }
-
-        // Number row — we need Screen and Interview columns
-        // The columns are: Days Open | Prospects | New Applicant | Review | Screen | Interview | Offer
-        // Numbers appear as separate lines or tab-separated
-        const numMatch = next.match(/^(\d+[\d,.km]*)\s*$/i);
-        if (numMatch) {
-          // Skip — numbers come as individual lines after the req
-        }
-      }
-
-      // Try to find the numbers for this req by looking for the sequence
-      // After the req title + location line, there should be 7 numbers
-      const numbers = [];
-      for (let j = i + 1; j < Math.min(i + 20, lines.length); j++) {
-        const next = lines[j];
-        // Check if it's a number (including formats like 1.7k, 1.3m, etc.)
-        if (next.match(/^[\d,.]+[km]?$/i) || next === '0') {
-          numbers.push(parseNumber(next));
-          if (numbers.length === 7) break;
-        }
-        // If we hit another req title, stop
-        if (next.match(/\(\d{9}\)$/) && j > i + 2) break;
-      }
-
-      if (numbers.length >= 7) {
-        // Order: Days Open, Prospects, New Applicant, Review, Screen, Interview, Offer
-        screen = numbers[4];
-        interview = numbers[5];
-      }
-
-      if (screen > 0 || interview > 0) {
-        data.reqs.push({
-          title: reqTitle,
-          id: reqId,
-          hiringManager: hiringManager,
-          screen: screen,
-          interview: interview,
-          location: location
-        });
-        data.totalFeedback += screen + interview;
-      }
-
-      // Also add as "candidate" for display purposes
-      if (screen > 0 || interview > 0) {
-        const feedback = [];
-        if (screen > 0) feedback.push({ interviewer: `${screen} candidate(s)`, formType: 'Phone Screen', decision: 'unknown', status: 'in-progress', date: '' });
-        if (interview > 0) feedback.push({ interviewer: `${interview} candidate(s)`, formType: 'Interview', decision: 'unknown', status: 'in-progress', date: '' });
-        data.candidates.push({
-          name: `${reqTitle} (${reqId})`,
-          hiringManager: hiringManager,
-          feedback: feedback
-        });
+    // Next line should be location • HM • Recruiter
+    for (let j = i + 1; j < Math.min(i + 5, lines.length); j++) {
+      if (lines[j].includes('•')) {
+        const parts = lines[j].split('•').map(p => p.trim());
+        if (parts.length >= 2) hiringManager = parts[1];
+        break;
       }
     }
-    i++;
+
+    // Collect the 7 numbers that follow (Days, Prospects, New, Review, Screen, Interview, Offer)
+    const numbers = [];
+    for (let j = i + 1; j < Math.min(i + 30, lines.length); j++) {
+      // Stop if we hit the next req
+      if (j > i + 2 && lines[j].match(/\(\d{9}\)$/)) break;
+
+      const numStr = lines[j].trim();
+      if (numStr.match(/^[\d,.]+[km]?$/i)) {
+        numbers.push(parseNumber(numStr));
+      }
+    }
+
+    // Columns: Days(0), Prospects(1), New Applicant(2), Review(3), Screen(4), Interview(5), Offer(6)
+    let screen = 0, interview = 0;
+    if (numbers.length >= 7) {
+      screen = numbers[4];
+      interview = numbers[5];
+    } else if (numbers.length >= 6) {
+      screen = numbers[3];
+      interview = numbers[4];
+    }
+
+    if (screen > 0 || interview > 0) {
+      data.reqs.push({ title: reqTitle, id: reqId, hiringManager, screen, interview });
+
+      const feedback = [];
+      if (screen > 0) feedback.push({ interviewer: `${screen} candidate(s)`, formType: 'Phone Screen', decision: 'unknown', status: 'in-progress', date: '' });
+      if (interview > 0) feedback.push({ interviewer: `${interview} candidate(s)`, formType: 'Interview', decision: 'unknown', status: 'in-progress', date: '' });
+
+      data.candidates.push({ name: `${reqTitle} (${reqId})`, hiringManager, feedback });
+      data.totalFeedback += screen + interview;
+    }
   }
 
   return data;
