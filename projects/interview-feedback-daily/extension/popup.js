@@ -100,29 +100,46 @@ function renderSummary(data) {
     const card = document.createElement('div');
     card.className = 'candidate-card';
 
-    const hireCount = c.feedback.filter(f => f.decision === 'hire').length;
-    const noHireCount = c.feedback.filter(f => f.decision === 'no-hire').length;
-    const pendingCount = c.feedback.filter(f => f.status === 'pending').length;
+    // Group feedback by interview type
+    const phoneScreen = c.feedback.filter(f => f.formType === 'Phone Screen');
+    const interview = c.feedback.filter(f => f.formType === 'Interview');
+    const other = c.feedback.filter(f => f.formType !== 'Phone Screen' && f.formType !== 'Interview');
 
-    let statusText = pendingCount > 0
-      ? `⏳ ${pendingCount} pending`
-      : `✅ All ${c.feedback.length} received`;
+    // Group by decision
+    const hire = c.feedback.filter(f => f.decision === 'hire');
+    const noHire = c.feedback.filter(f => f.decision === 'no-hire');
+    const pending = c.feedback.filter(f => f.status === 'pending');
 
     card.innerHTML = `
       <h3>👤 ${c.name}</h3>
-      <div class="meta">${statusText} — 👍 ${hireCount} | 👎 ${noHireCount}</div>
-      ${c.feedback.map(f => {
-        const icon = f.decision === 'hire' ? '👍' : f.decision === 'no-hire' ? '👎' : '⏳';
-        return `<div class="feedback-row">
-          <span class="icon">${icon}</span>
-          <span class="name">${f.interviewer}</span>
-          <span class="form-type">${f.formType || ''}</span>
-          <span class="date">${f.date || ''}</span>
-        </div>`;
-      }).join('')}
+      <div class="overview-badges">
+        <span class="badge badge-hire">👍 ${hire.length} Hire</span>
+        <span class="badge badge-nohire">👎 ${noHire.length} No Hire</span>
+        <span class="badge badge-pending">⏳ ${pending.length} Pending</span>
+      </div>
+
+      ${renderGroup('📞 Phone Screen', phoneScreen)}
+      ${renderGroup('🎤 Interview', interview)}
+      ${other.length > 0 ? renderGroup('📝 Other', other) : ''}
     `;
     list.appendChild(card);
   });
+}
+
+function renderGroup(title, feedbackList) {
+  if (feedbackList.length === 0) return '';
+  const rows = feedbackList.map(f => {
+    const icon = f.decision === 'hire' ? '👍' : f.decision === 'no-hire' ? '👎' : '⏳';
+    return `<div class="feedback-row">
+      <span class="icon">${icon}</span>
+      <span class="name">${f.interviewer}</span>
+      <span class="date">${f.date || ''}</span>
+    </div>`;
+  }).join('');
+  return `<div class="feedback-group">
+    <div class="group-title">${title} (${feedbackList.length})</div>
+    ${rows}
+  </div>`;
 }
 
 function buildTeamsCard(data) {

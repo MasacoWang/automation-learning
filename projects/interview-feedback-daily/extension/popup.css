@@ -79,7 +79,30 @@ h2 { font-size: 14px; font-weight: 600; }
 .candidate-card h3 {
   font-size: 13px;
   font-weight: 600;
-  margin-bottom: 4px;
+  margin-bottom: 8px;
+}
+.overview-badges {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.badge-hire { background: #d1fae5; color: #065f46; }
+.badge-nohire { background: #fee2e2; color: #991b1b; }
+.badge-pending { background: #fef3c7; color: #92400e; }
+.feedback-group {
+  margin-bottom: 10px;
+  padding: 8px 10px;
+  background: #f8fafc;
+  border-radius: 6px;
+  border-left: 3px solid #e2e8f0;
+}
+.feedback-group:last-child { margin-bottom: 0; }
+.group-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #4b5563;
+  text-transform: uppercase;
+  margin-bottom: 6px;
 }
 .candidate-card .meta {
   font-size: 11px;

@@ -341,26 +341,45 @@ function formatTextSummary(data) {
   }
 
   data.candidates.forEach(c => {
+    const phoneScreen = c.feedback.filter(f => f.formType === 'Phone Screen');
+    const interview = c.feedback.filter(f => f.formType === 'Interview');
+    const other = c.feedback.filter(f => f.formType !== 'Phone Screen' && f.formType !== 'Interview');
+
     const hireCount = c.feedback.filter(f => f.decision === 'hire').length;
     const noHireCount = c.feedback.filter(f => f.decision === 'no-hire').length;
     const pendingCount = c.feedback.filter(f => f.status === 'pending').length;
-    const total = c.feedback.length;
-
-    const status = pendingCount > 0
-      ? `⏳ ${pendingCount} pending, ${total - pendingCount}/${total} received`
-      : `✅ All ${total} feedback received`;
 
     lines.push('');
     lines.push(`👤 ${c.name}`);
-    lines.push(`   ${status}`);
-    lines.push(`   Results: 👍 ${hireCount} Hire | 👎 ${noHireCount} No Hire | ⏳ ${pendingCount} Pending`);
+    lines.push(`   👍 ${hireCount} Hire | 👎 ${noHireCount} No Hire | ⏳ ${pendingCount} Pending`);
 
-    c.feedback.forEach(f => {
-      const icon = f.decision === 'hire' ? '👍' : f.decision === 'no-hire' ? '👎' : '⏳';
-      const form = f.formType ? ` [${f.formType}]` : '';
-      const date = f.date ? ` (${f.date})` : '';
-      lines.push(`   ${icon} ${f.interviewer}${form}${date}`);
-    });
+    if (phoneScreen.length > 0) {
+      lines.push(`   ┌ 📞 PHONE SCREEN (${phoneScreen.length})`);
+      phoneScreen.forEach(f => {
+        const icon = f.decision === 'hire' ? '👍' : f.decision === 'no-hire' ? '👎' : '⏳';
+        const date = f.date ? ` (${f.date})` : '';
+        lines.push(`   │ ${icon} ${f.interviewer}${date}`);
+      });
+    }
+
+    if (interview.length > 0) {
+      lines.push(`   ┌ 🎤 INTERVIEW (${interview.length})`);
+      interview.forEach(f => {
+        const icon = f.decision === 'hire' ? '👍' : f.decision === 'no-hire' ? '👎' : '⏳';
+        const date = f.date ? ` (${f.date})` : '';
+        lines.push(`   │ ${icon} ${f.interviewer}${date}`);
+      });
+    }
+
+    if (other.length > 0) {
+      lines.push(`   ┌ 📝 OTHER (${other.length})`);
+      other.forEach(f => {
+        const icon = f.decision === 'hire' ? '👍' : f.decision === 'no-hire' ? '👎' : '⏳';
+        const form = f.formType ? ` [${f.formType}]` : '';
+        const date = f.date ? ` (${f.date})` : '';
+        lines.push(`   │ ${icon} ${f.interviewer}${form}${date}`);
+      });
+    }
   });
 
   // Action items
