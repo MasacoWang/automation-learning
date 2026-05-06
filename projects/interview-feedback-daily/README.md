@@ -1,12 +1,20 @@
 # 📋 Interview Feedback Daily Summary
 
-A zero-setup bookmarklet that extracts interview feedback from TA Hub with one click.
+Automated daily notification of interview feedback status — delivered to Teams + Email at 9 AM and 3 PM without opening TA Hub.
 
-## How It Works
+## Two Options
 
-1. **Drag** the bookmarklet to your bookmarks bar (one-time)
-2. **Open** TA Hub → any requisition → Feedback tab
-3. **Click** the bookmark → summary is copied to clipboard + popup with email option
+### Option A: Power Automate (Recommended — Fully Automated)
+See **[POWER_AUTOMATE_SETUP.md](./POWER_AUTOMATE_SETUP.md)** for step-by-step instructions.
+- Runs automatically on schedule
+- Sends Teams message + email digest
+- Zero daily effort — just receive your notification
+
+### Option B: Bookmarklet (Manual — One Click)
+Open `index.html` for the drag-and-drop setup.
+- Click a bookmark when on TA Hub
+- Instantly copies feedback summary
+- Good as a backup / on-demand option
 
 ## What You Get
 
